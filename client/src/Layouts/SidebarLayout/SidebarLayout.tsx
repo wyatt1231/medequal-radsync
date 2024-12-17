@@ -1,7 +1,7 @@
 import { Avatar, Skeleton, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import clsx from "clsx";
-import { FC, memo, useCallback, useEffect } from "react";
+import { FC, memo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { APP_NAME } from "../../Config/Config";
@@ -29,12 +29,6 @@ const SidebarLayout: FC<SidebarLayoutProps> = memo(() => {
   const HandleToggleSidebar = useCallback(() => {
     dispatch(LayoutActions.ToggleShowSidebar(!show_sidebar));
   }, [dispatch, show_sidebar]);
-
-  useEffect(() => {
-    if (desktop) {
-      // dispatch(LayoutActions.ToggleShowSidebar(true));
-    }
-  }, [desktop, dispatch]);
 
   const { hospital_logo, hospital_name, loading_hospital_logo, loading_hospital_name } = useSelector((store: RootStore) => store.ConfigReducer);
 

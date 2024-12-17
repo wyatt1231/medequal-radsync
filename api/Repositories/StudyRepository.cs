@@ -121,7 +121,7 @@ namespace radsync_server.Repositories
             else
             {
 
-                study.study_link = "https://universalviewer.io/examples/#?c=&m=&s=&cv=&manifest=https%3A%2F%2Fwellcomelibrary.org%2Fiiif%2Fb18035723%2Fmanifest&xywh=-1336%2C-198%2C5240%2C3936";
+                study.study_link = "https://universalviewer.io/uv.html?manifest=https://media.library.ohio.edu/iiif/2/lynnjohnson:728/manifest.json";
             }
 
             return study;

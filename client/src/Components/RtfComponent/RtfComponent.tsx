@@ -117,10 +117,11 @@ setUpQuill();
 type RtfComponentProps = {
   value: string;
   read_only?: boolean;
+  height?: string;
   onChange: (value: string) => void;
 };
 
-const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only }) => {
+const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only, height }) => {
   const editorRef = useRef<ReactQuill>(null);
 
   // Handle change in the Quill editor content
@@ -145,6 +146,7 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only 
         modules={modules} // Apply the toolbar configuration
         placeholder="Write here..."
         readOnly={read_only}
+        style={{ height: height ?? `auto` }}
       />
     </RtfComponentUi>
   );

@@ -247,7 +247,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
         />
       </Grid>
 
-      <Grid item xs={12}>
+      {/* <Grid item xs={12}>
         <TextField
           label="Study Link"
           value={StringUtil.ReplaceNull(study?.study_link, "-")}
@@ -259,7 +259,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
             disableUnderline: true,
           }}
         />
-      </Grid>
+      </Grid> */}
 
       {/* https://192.168.1.55/ZFP?mode=Proxy#view&pid=00094785&san=240018983&un=zfpopenapi&pw=YRLj8mqXPmkT7fTy44cjzIaoEca9rquhTY%2fkkl%2fOVdCZp4bWSQdw2bcRq7RujyjUrth7SPJP5ftYW3eQNUfd1g%3d%3d */}
     </Grid>
