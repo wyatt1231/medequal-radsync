@@ -21,11 +21,7 @@ const DoctorRoutes: FC<DoctorRoutesProps> = memo(() => {
   return (
     <>
       <Switch>
-        {/* <Route path="/" exact component={InpatientPage} /> */}
-        {/* <Route path="/inpatients" exact component={InpatientPage} /> */}
-        {/* <Route path="/inpatients/:patno" strict component={InpatientManagePage} /> */}
-
-        {/* <Route path="/study" exact component={StudyPage} > */}
+        <Route path="/" exact component={StudyPage} />
         <Route path="/study" exact component={StudyPage}></Route>
         <Route path="/study/:radresultno" strict component={StudyManagePage} />
 

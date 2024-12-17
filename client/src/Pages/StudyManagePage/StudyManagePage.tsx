@@ -147,13 +147,47 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
         <Grid item xs={12}>
           <Paper style={{ padding: `1em`, width: "100%", height: "100%" }} ref={divRef}>
             <Grid container spacing={3}>
-              {/* <Grid item xs={12}>
+              <Grid item xs={12}>
                 <div>
                   <Button onClick={() => onFullScreen()} title="Full Screen">
                     Full Screen
                   </Button>
                 </div>
-              </Grid> */}
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <Typography component={"div"} className="form-separator">
+                  Study Report
+                </Typography>
+
+                <div>
+                  <RtfComponent value={rtf_impression} onChange={onEditorChange} read_only={!["D", "C"].includes(study_impression?.resulttag)} />
+
+                  <Box marginTop={`1em`} display={`grid`} gridAutoFlow={`column`} gap={`1em`} justifyContent={`end`} justifyItems={`end`}>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      disabled={!["D", "C"].includes(study_impression?.resulttag)}
+                      onClick={async () => {
+                        await onSubmitStudy(`D`);
+                      }}
+                    >
+                      Save as Draft
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      color="warning"
+                      disabled={!["D", "C"].includes(study_impression?.resulttag)}
+                      onClick={async () => {
+                        await onSubmitStudy(`F`);
+                      }}
+                    >
+                      Save as Final
+                    </Button>
+                  </Box>
+                </div>
+              </Grid>
 
               <Grid item xs={12} md={8}>
                 <Typography component={"div"} className="form-separator">
@@ -185,41 +219,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                     </iframe>
                   </div>
                 )}
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography component={"div"} className="form-separator">
-                  Study Report
-                </Typography>
-
-                <div>
-                  <RtfComponent value={rtf_impression} onChange={onEditorChange} read_only={!["D", "C"].includes(study_impression?.resulttag)} />
-
-                  <Box marginTop={`1em`} display={`grid`} gridAutoFlow={`column`} gap={`1em`} justifyContent={`end`} justifyItems={`end`}>
-                    {/* <Button>Reset</Button> */}
-
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      disabled={!["D", "C"].includes(study_impression?.resulttag)}
-                      onClick={async () => {
-                        await onSubmitStudy(`D`);
-                      }}
-                    >
-                      Save as Draft
-                    </Button>
-
-                    <Button
-                      variant="contained"
-                      color="warning"
-                      disabled={!["D", "C"].includes(study_impression?.resulttag)}
-                      onClick={async () => {
-                        await onSubmitStudy(`F`);
-                      }}
-                    >
-                      Save as Final
-                    </Button>
-                  </Box>
-                </div>
               </Grid>
             </Grid>
           </Paper>

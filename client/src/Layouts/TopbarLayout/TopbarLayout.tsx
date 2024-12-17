@@ -5,6 +5,7 @@ import { FC, memo, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import LayoutActions from "../../Contexts/Actions/LayoutActions";
 import { RootStore } from "../../Contexts/Store";
+import { GetLocalStorage, SetLocalStorage } from "../../Helpers/LocalStorageHelper";
 import UserProfile from "./Components/UserProfile";
 import TopbarLayoutUi from "./Styles/TopbarLayoutUi";
 interface TopbarLayoutProps {}
@@ -14,9 +15,7 @@ const TopbarLayout: FC<TopbarLayoutProps> = memo(() => {
   const dispatch = useDispatch();
   const desktop = useMediaQuery(theme.breakpoints.up("md"));
 
-  const { show_sidebar } = useSelector(
-    (store: RootStore) => store.LayoutReducer
-  );
+  const { show_sidebar } = useSelector((store: RootStore) => store.LayoutReducer);
 
   const [show_toggle_btn, set_show_toggle_btn] = useState(false);
 
@@ -24,15 +23,25 @@ const TopbarLayout: FC<TopbarLayoutProps> = memo(() => {
 
   const HandleToggleSidebar = useCallback(() => {
     dispatch(LayoutActions.ToggleShowSidebar(!show_sidebar));
+
+    SetLocalStorage(`settings.show_siderbar`, !show_sidebar + ``);
   }, [dispatch, show_sidebar]);
 
   useEffect(() => {
     if (desktop) {
-      dispatch(LayoutActions.ToggleShowSidebar(true));
+      const is_show = GetLocalStorage(`settings.show_siderbar`) === `true` ? true : false;
+      console.log(`is_show`, is_show);
+      dispatch(LayoutActions.ToggleShowSidebar(is_show));
     } else {
       dispatch(LayoutActions.ToggleShowSidebar(false));
     }
   }, [desktop, dispatch]);
+
+  console.log(`show_sidebar`, show_sidebar);
+
+  useEffect(() => {
+    // SetLocalStorage(`settings.show_siderbar`, show_sidebar + ``);
+  }, [show_sidebar]);
 
   useEffect(() => {
     if (desktop) {

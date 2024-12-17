@@ -32,7 +32,7 @@ const SidebarLayout: FC<SidebarLayoutProps> = memo(() => {
 
   useEffect(() => {
     if (desktop) {
-      dispatch(LayoutActions.ToggleShowSidebar(true));
+      // dispatch(LayoutActions.ToggleShowSidebar(true));
     }
   }, [desktop, dispatch]);
 
