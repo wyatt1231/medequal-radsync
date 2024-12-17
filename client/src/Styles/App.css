@@ -1,0 +1,166 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Roboto", "Segoe UI", Helvetica, Tahoma, Geneva, Verdana,
+    sans-serif !important;
+}
+
+body {
+  width: calc(100vw - (100vw - 100%));
+  max-width: calc(100vw - (100vw - 100%));
+  background-color: #fafafa !important;
+}
+
+iframe > body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
+a {
+  color: unset !important;
+  text-decoration: unset !important;
+}
+
+
+.border-red {
+  /* background-color:  #ecc9c9 !important; */
+  border: 1px solid red !important;
+  border-radius: 3px !important;
+}
+
+.MuiDataGrid-cell {
+  outline: none !important;
+  border-left: 1px solid rgba(224, 224, 224, 1);
+  border-right: 1px solid rgba(224, 224, 224, 1);
+}
+
+.MuiDataGrid-cell.MuiDataGrid-cell--editable:focus{
+  outline: rgba(25, 118, 210, 0.5) solid 1px !important;
+}
+
+/* .MuiTablePagination-actions {
+  color: rgb(156, 39, 176) !important;
+}
+
+.MuiTablePagination-displayedRows,
+li.MuiMenuItem-root {
+  font-weight: 400 !important;
+  font-size: 0.75rem !important;
+  line-height: 1.66 !important;
+}
+
+.MuiTablePagination-toolbar {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+} */
+
+
+
+.link {
+  color: rgb(156, 39, 176) !important;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.info-group-ctnr {
+  display: grid;
+}
+
+.title-text-secondary {
+  opacity: 0.7;
+}
+
+/* tr {
+  border-radius: 10px !important;
+} */
+
+
+table {
+  border: 1px solid rgba(224, 224, 224, 1);
+}
+
+tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+
+th {
+  font-weight: 500 !important;
+  color: #959595 !important;
+  border-left: 1px solid rgba(224, 224, 224, 1);
+  border-right: 1px solid rgba(224, 224, 224, 1);
+
+}
+
+tr td {
+  
+   border-left: 1px solid rgba(224, 224, 224, 1);
+   border-right: 1px solid rgba(224, 224, 224, 1);
+}
+
+
+tr td:first-child {
+  border-left: none !important;
+}
+
+
+tr td:last-child {
+  border-right: none !important;
+}
+
+
+.info-title {
+
+
+  width: 100% !important;
+  min-width: 100% !important;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05) !important;
+  padding: .5em 0 !important;
+
+  
+}
+
+.info-title > .MuiTypography-root ,.info-title.MuiTypography-root {
+  font-weight: 500 !important;
+} 
+
+/* .MuiTypography-root  {
+  line-height: unset !important;
+} */
+
+
+.sticky {
+  position: sticky;
+  z-index: 101;
+  white-space: nowrap;
+}
+
+.patient-info-actions {
+  display: grid;
+  grid-auto-flow: column;
+  @media only screen and (max-width: 1200px) {
+    display: grid;
+    grid-auto-flow: row;
+    justify-items: start;
+    justify-content: start;
+    grid-gap: 1em;
+    /* min-width: 90vw  !important; */
+    background-color: #fff !important;
+    /* border-top: 2px solid rgba(0, 0, 0, 0.05); */
+    /* border-bottom: 2px solid rgba(0, 0, 0, 0.05); */
+  }
+}
+
+.patient-personal-details {
+  @media only screen and (max-width: 1200px) {
+    margin-top: 6em  !important;
+  }
+}
+
+.form-separator {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: .5em;
+  margin-bottom: .5em !important;
+}

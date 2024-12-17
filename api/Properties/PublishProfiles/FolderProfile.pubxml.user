@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\Users\Public\Software Development\PRODUCTION\DOCTOR_PORTAL</_PublishTargetUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <File Include="Pdf/main.css">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="Pdf/MedPrescripPdf/MedPrescripPdf.cs">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="Pdf/pdf.css">
+      <publishTime>09/01/2021 23:33:49</publishTime>
+    </File>
+    <File Include="Pdf/ProcPrescripPdf/ProcPrescrip.cs">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="Pdf/SoaPdf/SoaPdf.cs">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="Pdf/SoaPdf/SoaPdf.css">
+      <publishTime>08/21/2021 22:14:08</publishTime>
+    </File>
+    <File Include="Pdf/SoaPdf/SoaPdf.html">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+  </ItemGroup>
+</Project>
