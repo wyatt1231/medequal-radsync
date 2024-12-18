@@ -1,5 +1,5 @@
 import { InpatientDto } from "../../Interfaces/InpatientInterfaces";
-import { StudyDto } from "../../Interfaces/StudyInterfaces";
+import { StudyDto, StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
 
 export type StudyReducerTypes =
   | {
@@ -17,6 +17,10 @@ export type StudyReducerTypes =
   | {
       type: "set_study_impression";
       study_impression: StudyDto;
+    }
+  | {
+      type: "set_study_templates";
+      study_templates?: StudyTemplateDto[];
     };
 
 export interface StudyReducerModel {
@@ -24,4 +28,5 @@ export interface StudyReducerModel {
   study?: StudyDto;
   study_patient?: InpatientDto;
   study_impression?: StudyDto;
+  study_templates?: StudyTemplateDto[];
 }

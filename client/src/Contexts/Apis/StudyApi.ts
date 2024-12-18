@@ -2,7 +2,7 @@ import { Axios, FetchJsonHeader } from "../../Config/ApiConfig";
 import { SERVER_URL } from "../../Config/Config";
 import { InpatientDto } from "../../Interfaces/InpatientInterfaces";
 
-import { StudyDto } from "../../Interfaces/StudyInterfaces";
+import { StudyDto, StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
 
 const BASE_URL = `api/study`;
 
@@ -41,12 +41,24 @@ const UpdateStudyImpression = async (radresultno: string, payload: StudyDto): Pr
   return response.data;
 };
 
+//#region TEMPLATE
+
+const GetStudyTemplates = async (): Promise<StudyTemplateDto[]> => {
+  const response = await Axios.get(SERVER_URL + BASE_URL + `/template`, {
+    headers: FetchJsonHeader,
+  });
+  return response.data;
+};
+
+//#endregion
+
 const StudyApi = {
   GetStudies,
   GetStudy,
   GetStudyPatient,
   GetStudyImpression,
   UpdateStudyImpression,
+  GetStudyTemplates,
 };
 
 export default StudyApi;

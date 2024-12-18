@@ -3,17 +3,20 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PlaylistAddCircleIcon from "@mui/icons-material/PlaylistAddCheck";
 import PreviewIcon from "@mui/icons-material/Preview";
-import { Box, Button, Grid, IconButton, Paper, Typography } from "@mui/material";
+import SwipeDownRoundedIcon from "@mui/icons-material/SwipeRounded";
+import { Box, Button, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { useTheme } from "styled-components";
 import RtfComponent from "../../Components/RtfComponent/RtfComponent";
+import SideoutComponent from "../../Components/SideoutComponent/SideoutComponent";
 import PageActions from "../../Contexts/Actions/PageActions";
 import StudyActions from "../../Contexts/Actions/StudyActions";
 import StudyApi from "../../Contexts/Apis/StudyApi";
 import { RootStore } from "../../Contexts/Store";
-import { StudyDto } from "../../Interfaces/StudyInterfaces";
+import { StudyDto, StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
+import StringUtil from "../../Utils/StringUtil";
 import StudyManagePagePatientInfo from "./StudyManagePagePatientInfo";
 interface StudyManagePageProps {}
 
@@ -27,7 +30,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const { radresultno } = params;
   const dispatch = useDispatch();
 
-  const { study, study_impression } = useSelector((store: RootStore) => store.StudyReducer);
+  const { study, study_impression, study_templates } = useSelector((store: RootStore) => store.StudyReducer);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const divRef = useRef(null);
@@ -37,6 +40,56 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const [loading_study, set_loading_study] = useState(false);
   const [loading_study_patient, set_loading_study_patient] = useState(false);
   const [loading_study_impression, set_loading_study_impression] = useState(false);
+
+  const [is_open_template, set_is_open_template] = useState(false);
+
+  const study_template_columns: GridColDef<StudyTemplateDto>[] = [
+    {
+      field: "templatekey",
+      headerName: "Title",
+      editable: false,
+      width: 200,
+    },
+    {
+      field: "templatedeschtml",
+      headerName: "Template",
+      editable: false,
+      flex: 1,
+      renderCell: ({ row }) => {
+        return StringUtil.StripHtml(row?.templatedeschtml ?? ``);
+      },
+    },
+    {
+      field: "",
+      headerName: "Actions",
+      editable: false,
+      minWidth: 100,
+      maxWidth: 100,
+      align: `center`,
+      renderCell: ({ row }) => {
+        return (
+          <IconButton
+            title={"Use Study Template"}
+            onClick={() => {
+              if (!!row.templatedeschtml) {
+                set_rtf_impression(row.templatedeschtml);
+                set_is_open_template(false);
+
+                dispatch(PageActions.SetPrompt(`The study template has been used to this study!`, `success`));
+              }
+            }}
+            size={"small"}
+          >
+            <SwipeDownRoundedIcon fontSize="small" color="primary" />
+          </IconButton>
+        );
+      },
+    },
+  ];
+
+  const onClickOpenTemplate = useCallback(() => {
+    set_is_open_template(true);
+  }, []);
 
   const onClickFullScreenStudy = useCallback(() => {
     if (is_full_screen_study) {
@@ -173,6 +226,12 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
           set_loading_study_impression(is_loading);
         })
       );
+
+      dispatch(
+        StudyActions.SetStudyTemplates((is_loading: boolean) => {
+          // set_loading_study_impression(is_loading);
+        })
+      );
     }
   }, [dispatch, radresultno]);
 
@@ -206,9 +265,11 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       alignItems={`center`}
                       alignContent={`center`}
                     >
-                      <IconButton title="Result Templates" onClick={onClickFullScreenStudy} size={"small"}>
-                        <PlaylistAddCircleIcon fontSize="small" color="primary" />
-                      </IconButton>
+                      {["D", "C"].includes(study_impression?.resulttag) && (
+                        <IconButton title="Result Templates" onClick={onClickOpenTemplate} size={"small"}>
+                          <PlaylistAddCircleIcon fontSize="small" color="primary" />
+                        </IconButton>
+                      )}
 
                       <IconButton title={"Open Imaging In New Window"} onClick={onClickOpenLinkNewWindow} size={"small"}>
                         <OpenInNewIcon fontSize="small" color="primary" />
@@ -302,6 +363,27 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
           </Paper>
         </Grid>
       </Grid>
+
+      <SideoutComponent
+        open={is_open_template}
+        set_open={(open: boolean) => set_is_open_template(open)}
+        title="Study Templates"
+        width={theme.breakpoints.values.md}
+        Action={null}
+        Body={
+          <Box height={`100%`}>
+            {/* <Box style={{ height: `calc(100vh - 230px)`, width: "100%" }}> */}
+            <DataGrid
+              getRowId={(p) => p.templateno}
+              density="compact"
+              rows={study_templates ?? []}
+              columns={study_template_columns}
+              loading={false}
+              disableSelectionOnClick
+            />
+          </Box>
+        }
+      ></SideoutComponent>
     </div>
   );
 });

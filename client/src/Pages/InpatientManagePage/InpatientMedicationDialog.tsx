@@ -15,6 +15,7 @@ import LibraryApi from "../../Contexts/Apis/LibraryApi";
 import { RootStore } from "../../Contexts/Store";
 import { MedicineDto } from "../../Interfaces/IPatientMedicine";
 import DateUtils from "../../Utils/DateUtils";
+
 interface MedicationDialogProps {
   patno: string;
 }
@@ -29,16 +30,11 @@ const form_schema = yup.object<any>({
 const MedicationDialog: FC<MedicationDialogProps> = memo(({ patno }) => {
   const dispatch = useDispatch();
 
-  const { medication_dialog } = useSelector(
-    (store: RootStore) => store.InpatientReducer
-  );
+  const { medication_dialog } = useSelector((store: RootStore) => store.InpatientReducer);
 
-  const [is_loading_add_medication, set_is_loading_add_medication] =
-    useState(false);
+  const [is_loading_add_medication, set_is_loading_add_medication] = useState(false);
 
-  const { med_lib, freq_lib } = useSelector(
-    (store: RootStore) => store.LibraryReducer
-  );
+  const { med_lib, freq_lib } = useSelector((store: RootStore) => store.LibraryReducer);
 
   const form_instance = useForm<MedicineDto>({
     resolver: yupResolver(form_schema),
@@ -114,12 +110,8 @@ const MedicationDialog: FC<MedicationDialogProps> = memo(({ patno }) => {
     form_instance.reset({
       stockcode: data.stockcode ?? ``,
       dosecode: data.dosecode ?? ``,
-      datestarted: !!data.datestarted
-        ? moment(data.datestarted).toString()
-        : null,
-      datestopped: !!data.datestopped
-        ? moment(data.datestopped).toString()
-        : null,
+      datestarted: !!data.datestarted ? moment(data.datestarted).toString() : null,
+      datestopped: !!data.datestopped ? moment(data.datestopped).toString() : null,
     });
     return () => {};
   }, [medication_dialog?.payload, form_instance]);
@@ -135,11 +127,7 @@ const MedicationDialog: FC<MedicationDialogProps> = memo(({ patno }) => {
         minWidth={600}
         body={
           <FormProvider {...form_instance}>
-            <form
-              onSubmit={form_instance.handleSubmit(handleSubmitForm)}
-              noValidate
-              id="form_instance_medication"
-            >
+            <form onSubmit={form_instance.handleSubmit(handleSubmitForm)} noValidate id="form_instance_medication">
               <div
                 style={{
                   display: `grid`,
@@ -190,13 +178,7 @@ const MedicationDialog: FC<MedicationDialogProps> = memo(({ patno }) => {
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <DateFieldHookForm
-                      name="datestopped"
-                      label="Stop At"
-                      fullWidth
-                      type="datetime-local"
-                      InputLabelProps={{ shrink: true }}
-                    />
+                    <DateFieldHookForm name="datestopped" label="Stop At" fullWidth type="datetime-local" InputLabelProps={{ shrink: true }} />
                   </Grid>
                 </Grid>
               </div>
@@ -215,13 +197,7 @@ const MedicationDialog: FC<MedicationDialogProps> = memo(({ patno }) => {
               Reset
             </LoadingButton>
 
-            <LoadingButton
-              variant="contained"
-              color="primary"
-              type="submit"
-              form="form_instance_medication"
-              loading={is_loading_add_medication}
-            >
+            <LoadingButton variant="contained" color="primary" type="submit" form="form_instance_medication" loading={is_loading_add_medication}>
               Save
             </LoadingButton>
           </>
