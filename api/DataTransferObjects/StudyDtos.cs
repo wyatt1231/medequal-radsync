@@ -35,5 +35,13 @@
 
         }
 
+        public class StudyTemplateDto
+        {
+            public string templateno { get; set; }
+            public string templatekey { get; set; }
+            public string templatedesc { get; set; }
+            public string templatedeschtml { get; set; }
+        }
+
     }
 }

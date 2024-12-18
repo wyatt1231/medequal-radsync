@@ -133,5 +133,26 @@ namespace radsync_server.Controllers
         }
 
 
+        #region TEMPLATES
+
+        [HttpGet("template")]
+        public async Task<ActionResult<List<StudyTemplateDto>>> GetStudyTemplates()
+        {
+            await mysql_db_context.BeginTransactionAsync();
+
+            UserDto user = new UserDto()
+            {
+                username = User.Identity.Name,
+                user_type = UseClaims.PriorityRole((ClaimsIdentity)User.Identity)
+            };
+
+            var data = await study_repo.GetStudyTemplates(user);
+
+            await mysql_db_context.CommitTransactionAsync();
+            return data;
+        }
+
+        #endregion
+
     }
 }
