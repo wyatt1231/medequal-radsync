@@ -67,11 +67,27 @@ const SetStudyImpression =
     !!loadingCallback && loadingCallback(false);
   };
 
+const SetStudyTemplates = (loadingCallback?: (is_loading: boolean) => void) => async (dispatch: Dispatch<StudyReducerTypes | PageReducerTypes>) => {
+  !!loadingCallback && loadingCallback(true);
+  try {
+    const data = await StudyApi.GetStudyTemplates();
+    dispatch({
+      type: "set_study_templates",
+      study_templates: data,
+    });
+  } catch (error) {
+    PageActions.SetHttpErrorPrompt(error);
+  }
+
+  !!loadingCallback && loadingCallback(false);
+};
+
 const StudyActions = {
   SetStudys,
   SetStudy,
   SetStudyPatient,
   SetStudyImpression,
+  SetStudyTemplates,
 };
 
 export default StudyActions;

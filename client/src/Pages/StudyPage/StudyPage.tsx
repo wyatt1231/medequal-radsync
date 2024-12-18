@@ -117,6 +117,11 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                 columns={columns}
                 loading={is_loading_table}
                 disableSelectionOnClick
+                initialState={{
+                  sorting: {
+                    sortModel: [{ field: `studydate`, sort: `desc` }],
+                  },
+                }}
               />
             </div>
           </Grid>

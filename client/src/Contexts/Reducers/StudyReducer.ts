@@ -29,6 +29,13 @@ const StudyReducer = (state: StudyReducerModel = defaultState, action: StudyRedu
       };
     }
 
+    case "set_study_templates": {
+      return {
+        ...state,
+        study_templates: action.study_templates,
+      };
+    }
+
     default:
       return state;
   }

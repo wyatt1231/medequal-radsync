@@ -26,3 +26,10 @@ export interface StudyDto {
   proccode?: string;
   study_link?: string;
 }
+
+export interface StudyTemplateDto {
+  templateno?: string;
+  templatekey?: string;
+  templatedesc?: string;
+  templatedeschtml?: string;
+}

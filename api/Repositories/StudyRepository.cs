@@ -27,6 +27,7 @@ namespace radsync_server.Repositories
         Task<StudyDto> GetStudyImpression(string radresultno, UserDto user);
         Task<InpatientDtos> GetStudyPatient(string radresultno, UserDto user);
         Task<StudyDto> UpdateStudyImpression(StudyDto study, UserDto user);
+        Task<List<StudyTemplateDto>> GetStudyTemplates(UserDto user);
     }
 
     public class StudyRepository : IStudyRepository
@@ -217,6 +218,19 @@ namespace radsync_server.Repositories
 
             return study;
 
+        }
+
+        public async Task<List<StudyTemplateDto>> GetStudyTemplates(UserDto user)
+        {
+            var con = await this.mysql_db_context.GetConnectionAsync();
+            var transaction = await this.mysql_db_context.BeginTransactionAsync();
+
+            List<StudyTemplateDto> templates = (await con.QueryAsync<StudyTemplateDto>($@"
+                                                        select r.templateno, r.templatekey , r.templatedesc , r.templatedeschtml from resulttemplate r 
+                                                         {(UserConfig.IsDoctor(user.user_type) ? $" WHERE r.tempdoccode = @doccode" : "")}
+                                            ", new { doccode = user.username }, transaction: transaction)).ToList();
+
+            return templates;
         }
 
     }

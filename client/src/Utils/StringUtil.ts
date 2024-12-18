@@ -25,9 +25,17 @@ const Ellipses = (str: string | undefined, char_len: number, alt: string): any =
   return `${str.slice(0, char_len)}...`;
 };
 
+function StripHtml(input: string): string {
+  if (!!input) {
+    return input.replace(/<[^>]*>/g, "");
+  }
+  return ``;
+}
+
 const StringUtil = {
   ReplaceNull,
   Ellipses,
+  StripHtml,
 };
 
 export default StringUtil;
