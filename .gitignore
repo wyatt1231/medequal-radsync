@@ -29,4 +29,7 @@
 /api/uploads
 /api/chrome/*
 /api/.vs/*
+/api/bin/*
+/api/obj/*
+
 
