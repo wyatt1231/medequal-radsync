@@ -154,6 +154,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   // };
 
   const onEditorChange = (content: string) => {
+    // console.log(`content`, content);
     set_rtf_impression(content);
   };
 
@@ -163,7 +164,12 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
         resulttag: tag,
         radresulthtml: rtf_impression,
         radresultno: radresultno,
+        resultdesc: StringUtil.HtmlToRtf(rtf_impression),
       };
+
+      // console.log(`payload`, payload.resultdesc);
+
+      // return;
 
       dispatch(
         PageActions.SetPageConfirmation({
@@ -174,7 +180,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
             try {
               const study_result = await StudyApi.UpdateStudyImpression(radresultno, payload);
 
-              console.log(`study_result`, study_result);
+              // console.log(`study_result`, study_result);
 
               dispatch(PageActions.SetPrompt(`The study impression has been saved as ${tag === `D` ? `DRAFT` : `FINAL`}!`, `success`));
 
@@ -237,6 +243,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
   useEffect(() => {
     if (!!radresultno && !!study_impression && !loading_study_impression) {
+      // console.log(`study_impression?.radresulthtml `, study_impression?.radresulthtml);
       set_rtf_impression(study_impression?.radresulthtml ?? ``);
     }
   }, [dispatch, radresultno, study_impression, loading_study_impression]);

@@ -1,6 +1,7 @@
 ﻿
 using Api.Context;
 using Api.DataTransferObjects;
+using Api.Utils;
 
 using Dapper;
 
@@ -174,6 +175,11 @@ namespace radsync_server.Repositories
                 throw new Exception($"The study with result number {radresultno} does not exist!");
             }
 
+            //data.radresulthtml = RtfPipe.Rtf.ToHtml(data.resultdesc);
+            data.radresulthtml =StringUtil.RtfToHtml(data.resultdesc);
+
+            //data.radresulthtml = data.resultdesc;
+
             return data;
         }
 
@@ -204,7 +210,7 @@ namespace radsync_server.Repositories
             if (is_draft)
             {
                 await con.ExecuteAsync(
-                            $@"update `radresult` set resulttag=@resulttag, radresulthtml = @radresulthtml,draftuser=@user, resultdate=now() where radresultno = @radresultno",
+                            $@"update `radresult` set resulttag=@resulttag, resultdesc = @resultdesc,draftuser=@user, resultdate=now() where radresultno = @radresultno",
                             study, transaction: transaction);
 
             }
