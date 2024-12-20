@@ -14,6 +14,9 @@ const RtfComponentUi = styled(`div`)`
   .ql-container.ql-snow {
     font-family: "Arial" !important;
     border: none !important;
+    * {
+      font-family: "Arial" !important;
+    }
   }
 
   /* Customize Quill's toolbar */

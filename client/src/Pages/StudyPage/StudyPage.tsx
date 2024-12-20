@@ -1,6 +1,6 @@
 import { Grid, Paper, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { FC, memo, useCallback, useEffect, useState } from "react";
+import { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import PageActions from "../../Contexts/Actions/PageActions";
@@ -77,6 +77,8 @@ const columns: GridColDef<StudyDto>[] = [
 
 const StudyPage: FC<StudyPageProps> = memo(() => {
   const dispatch = useDispatch();
+  const divRef = useRef<HTMLDivElement>(null); // Ref to access the div element
+  const [position, set_position] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
   const [is_loading_table, set_is_loading_table] = useState(false);
 
@@ -91,6 +93,15 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
   }, [dispatch, setIsLoadingTable]);
 
   useEffect(() => {
+    if (divRef.current) {
+      const rect = divRef.current.getBoundingClientRect();
+      set_position({ top: rect.top, left: rect.left });
+    }
+  }, []);
+
+  console.log(`position`, position);
+
+  useEffect(() => {
     dispatch(
       PageActions.SetPageLinks([
         {
@@ -103,13 +114,14 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
   return (
     <>
       <Paper
+        ref={divRef}
         style={{
           padding: `1em`,
         }}
       >
         <Grid container spacing={1}>
           <Grid item xs={12}>
-            <div style={{ height: `calc(100vh - 230px)`, width: "100%" }}>
+            <div style={{ height: `calc(100vh - ${position.top + 60}px)`, width: "100%" }}>
               <DataGrid
                 getRowId={(p) => p.radresultno}
                 density="compact"

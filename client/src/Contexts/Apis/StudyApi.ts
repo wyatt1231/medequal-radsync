@@ -41,10 +41,42 @@ const UpdateStudyImpression = async (radresultno: string, payload: StudyDto): Pr
   return response.data;
 };
 
+const RevokeStudyImpression = async (radresultno: string): Promise<StudyDto> => {
+  const response = await Axios.put(
+    SERVER_URL + BASE_URL + `/${radresultno}/impression/revoke`,
+    {},
+    {
+      headers: FetchJsonHeader,
+    }
+  );
+  return response.data;
+};
+
 //#region TEMPLATE
 
 const GetStudyTemplates = async (): Promise<StudyTemplateDto[]> => {
   const response = await Axios.get(SERVER_URL + BASE_URL + `/template`, {
+    headers: FetchJsonHeader,
+  });
+  return response.data;
+};
+
+const AddStudyTemplate = async (payload: StudyTemplateDto): Promise<StudyDto> => {
+  const response = await Axios.post(SERVER_URL + BASE_URL + `/template`, payload, {
+    headers: FetchJsonHeader,
+  });
+  return response.data;
+};
+
+const UpdateStudyTemplate = async (payload: StudyTemplateDto): Promise<StudyDto> => {
+  const response = await Axios.put(SERVER_URL + BASE_URL + `/template`, payload, {
+    headers: FetchJsonHeader,
+  });
+  return response.data;
+};
+
+const DeleteStudyTemplate = async (radresultno: string): Promise<StudyDto> => {
+  const response = await Axios.delete(SERVER_URL + BASE_URL + `/template/${radresultno}`, {
     headers: FetchJsonHeader,
   });
   return response.data;
@@ -58,7 +90,11 @@ const StudyApi = {
   GetStudyPatient,
   GetStudyImpression,
   UpdateStudyImpression,
+  RevokeStudyImpression,
   GetStudyTemplates,
+  AddStudyTemplate,
+  UpdateStudyTemplate,
+  DeleteStudyTemplate,
 };
 
 export default StudyApi;

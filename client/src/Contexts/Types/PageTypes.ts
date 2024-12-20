@@ -1,4 +1,5 @@
 import { OptionsObject } from "notistack";
+import { SideoutComponentProps } from "../../Components/SideoutComponent/SideoutComponent";
 
 export interface IPageLink {
   label: string;
@@ -73,6 +74,18 @@ export type PageReducerTypes =
   | {
       type: "SET_PAGE_SUCCESS_PROMPT";
       page_success_prompt: PageSuccessPromptTypes;
+    }
+  //
+  | {
+      type: "PUSH_PAGE_SIDEOUT";
+      page_sideout: SideoutComponentProps;
+    }
+  | {
+      type: "POP_PAGE_SIDEOUT";
+    }
+  | {
+      type: "SPLICE_PAGE_SIDEOUT";
+      id: number;
     };
 
 export interface PageReducerModel {
@@ -83,4 +96,6 @@ export interface PageReducerModel {
   page_loading: PageLoadingTypes;
   page_snackbar: PageSnackbarTypes;
   page_success_prompt?: PageSuccessPromptTypes;
+
+  page_sideouts: SideoutComponentProps[];
 }

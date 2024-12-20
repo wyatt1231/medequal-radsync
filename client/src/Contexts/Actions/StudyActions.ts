@@ -1,4 +1,5 @@
 import { Dispatch } from "react";
+import { StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
 import StudyApi from "../Apis/StudyApi";
 import { PageReducerTypes } from "../Types/PageTypes";
 import { StudyReducerTypes } from "../Types/StudyTypes";
@@ -28,11 +29,11 @@ const SetStudy =
         type: "set_study",
         study: data,
       });
+      !!loadingCallback && loadingCallback(false);
     } catch (error) {
       PageActions.SetHttpErrorPrompt(error);
+      window.location.replace(`/404`);
     }
-
-    !!loadingCallback && loadingCallback(false);
   };
 
 const SetStudyPatient =
@@ -67,20 +68,28 @@ const SetStudyImpression =
     !!loadingCallback && loadingCallback(false);
   };
 
-const SetStudyTemplates = (loadingCallback?: (is_loading: boolean) => void) => async (dispatch: Dispatch<StudyReducerTypes | PageReducerTypes>) => {
-  !!loadingCallback && loadingCallback(true);
-  try {
-    const data = await StudyApi.GetStudyTemplates();
-    dispatch({
-      type: "set_study_templates",
-      study_templates: data,
-    });
-  } catch (error) {
-    PageActions.SetHttpErrorPrompt(error);
-  }
-
-  !!loadingCallback && loadingCallback(false);
-};
+const SetStudyTemplates =
+  (study_templates?: StudyTemplateDto[], loadingCallback?: (is_loading: boolean) => void) =>
+  async (dispatch: Dispatch<StudyReducerTypes | PageReducerTypes>) => {
+    if (!!study_templates) {
+      dispatch({
+        type: "set_study_templates",
+        study_templates: study_templates,
+      });
+    } else {
+      !!loadingCallback && loadingCallback(true);
+      try {
+        const data = await StudyApi.GetStudyTemplates();
+        dispatch({
+          type: "set_study_templates",
+          study_templates: data,
+        });
+      } catch (error) {
+        PageActions.SetHttpErrorPrompt(error);
+      }
+      !!loadingCallback && loadingCallback(false);
+    }
+  };
 
 const StudyActions = {
   SetStudys,

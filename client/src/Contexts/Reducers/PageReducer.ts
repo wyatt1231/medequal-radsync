@@ -20,6 +20,8 @@ const defaultState: PageReducerModel = {
   page_snackbar: {
     message: null,
   },
+
+  page_sideouts: [],
 };
 
 const PageReducer = (state: PageReducerModel = defaultState, action: PageReducerTypes): PageReducerModel => {
@@ -54,6 +56,38 @@ const PageReducer = (state: PageReducerModel = defaultState, action: PageReducer
 
     case "SET_PAGE_SUCCESS_PROMPT":
       return { ...state, page_success_prompt: action.page_success_prompt };
+
+    case "PUSH_PAGE_SIDEOUT":
+      return {
+        ...state,
+        page_sideouts: [
+          ...state.page_sideouts,
+          {
+            id: state.page_sideouts.length + 1,
+            ...action.page_sideout,
+          },
+        ],
+      };
+
+    case "POP_PAGE_SIDEOUT": {
+      const sideouts = state.page_sideouts;
+      sideouts.pop();
+
+      return { ...state, page_sideouts: sideouts };
+    }
+
+    case "SPLICE_PAGE_SIDEOUT": {
+      const sideouts = state.page_sideouts;
+      const index = sideouts.findIndex((p) => p.id === action.id);
+
+      if (index !== -1) {
+        sideouts.splice(index, 1);
+
+        return { ...state, page_sideouts: sideouts };
+      } else {
+        return state;
+      }
+    }
 
     default:
       return state;

@@ -26,7 +26,7 @@ const DoctorRoutes: FC<DoctorRoutesProps> = memo(() => {
         <Route path="/study/:radresultno" strict component={StudyManagePage} />
 
         <Route path="/change-password" exact component={UserPasswordPage} />
-
+        <Route path="/404" exact component={PageNotFound} />
         <Route>{<PageNotFound />}</Route>
       </Switch>
     </>

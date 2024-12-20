@@ -1,23 +1,24 @@
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import PlaylistAddCircleIcon from "@mui/icons-material/PlaylistAddCheck";
+// import PlaylistAddCircleIcon from "@mui/icons-material/PlaylistAddCheck";
 import PreviewIcon from "@mui/icons-material/Preview";
-import SwipeDownRoundedIcon from "@mui/icons-material/SwipeRounded";
 import { Box, Button, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import Loader from "../../Components/Loader";
 import RtfComponent from "../../Components/RtfComponent/RtfComponent";
-import SideoutComponent from "../../Components/SideoutComponent/SideoutComponent";
 import PageActions from "../../Contexts/Actions/PageActions";
 import StudyActions from "../../Contexts/Actions/StudyActions";
 import StudyApi from "../../Contexts/Apis/StudyApi";
 import { RootStore } from "../../Contexts/Store";
+import { FormType } from "../../Contexts/Types/FormTypes";
 import { StudyDto, StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
 import StringUtil from "../../Utils/StringUtil";
 import StudyManagePagePatientInfo from "./StudyManagePagePatientInfo";
+import StudyManageTemplate from "./StudyManageTemplate";
+import StudyManageTemplateForm from "./StudyManageTemplateForm";
 interface StudyManagePageProps {}
 
 interface StudyManagePageParamsProps {
@@ -32,67 +33,93 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const { radresultno } = params;
   const dispatch = useDispatch();
 
-  const { study, study_impression, study_templates } = useSelector((store: RootStore) => store.StudyReducer);
+  const { study, study_impression } = useSelector((store: RootStore) => store.StudyReducer);
 
   const [font_size, set_font_size] = useState(`11pt`);
 
   const [is_full_screen_study, set_is_full_screen_study] = useState(false);
-  const [is_full_screen_imaging, set_is_full_screen_imaging] = useState(false);
+  // const [is_full_screen_imaging, set_is_full_screen_imaging] = useState(false);
   const [rtf_impression, set_rtf_impression] = useState<string>("");
   const [loading_study, set_loading_study] = useState(false);
   const [loading_study_patient, set_loading_study_patient] = useState(false);
   const [loading_study_impression, set_loading_study_impression] = useState(false);
 
-  const [is_open_template, set_is_open_template] = useState(false);
+  const onSubmitTemplate = async (form_type: FormType, payload: StudyTemplateDto) => {
+    if (form_type === `ADD`) {
+      dispatch(PageActions.SetLoading(true));
+      try {
+        await StudyApi.AddStudyTemplate(payload);
+        dispatch(PageActions.SetPrompt(`The template has been added successfully!`, `success`));
+        dispatch(StudyActions.SetStudyTemplates());
+        dispatch(PageActions.PopPageSideout());
+      } catch (error) {
+        dispatch(PageActions.SetHttpErrorPrompt(error));
+      }
+      dispatch(PageActions.SetLoading(false));
+    } else if (form_type === `EDIT`) {
+      dispatch(PageActions.SetLoading(true));
+      try {
+        await StudyApi.UpdateStudyTemplate(payload);
+        dispatch(PageActions.SetPrompt(`The template has been updated successfully!`, `success`));
+        dispatch(StudyActions.SetStudyTemplates());
+        dispatch(PageActions.PopPageSideout());
+      } catch (error) {
+        dispatch(PageActions.SetHttpErrorPrompt(error));
+      }
+      dispatch(PageActions.SetLoading(false));
+    }
+  };
 
-  const study_template_columns: GridColDef<StudyTemplateDto>[] = [
-    {
-      field: "templatekey",
-      headerName: "Title",
-      editable: false,
-      width: 200,
-    },
-    {
-      field: "templatedeschtml",
-      headerName: "Template",
-      editable: false,
-      flex: 1,
-      renderCell: ({ row }) => {
-        return StringUtil.StripHtml(row?.templatedeschtml ?? ``);
-      },
-    },
-    {
-      field: "",
-      headerName: "Actions",
-      editable: false,
-      minWidth: 100,
-      maxWidth: 100,
-      align: `center`,
-      renderCell: ({ row }) => {
-        return (
-          <IconButton
-            title={"Use Study Template"}
-            onClick={() => {
-              if (!!row.templatedeschtml) {
-                set_font_size(row.font_size ?? `11pt`);
-                set_rtf_impression(row.templatedeschtml);
-                set_is_open_template(false);
+  const onClickOpenTemplate = async () => {
+    try {
+      dispatch(PageActions.SetLoading(true));
+      const templates = await StudyApi.GetStudyTemplates();
+      dispatch(StudyActions.SetStudyTemplates(templates));
+      dispatch(PageActions.SetLoading(false));
 
-                dispatch(PageActions.SetPrompt(`The study template has been used to this study!`, `success`));
-              }
-            }}
-            size={"small"}
-          >
-            <SwipeDownRoundedIcon fontSize="small" color="primary" />
-          </IconButton>
-        );
-      },
-    },
-  ];
-
-  const onClickOpenTemplate = useCallback(() => {
-    set_is_open_template(true);
-  }, []);
+      dispatch(
+        PageActions.PushPageSideout({
+          title: `Study Templates`,
+          width: theme.breakpoints.values.lg + `px`,
+          ActionComponent: (
+            <>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  dispatch(
+                    PageActions.PushPageSideout({
+                      title: `Create a Template`,
+                      width: theme.breakpoints.values.md + `px`,
+                      BodyComponent: <StudyManageTemplateForm form_type="ADD" onSubmit={onSubmitTemplate}></StudyManageTemplateForm>,
+                      ActionComponent: (
+                        <>
+                          <Button type="submit" form="form_study_template" variant="contained">
+                            Add Template
+                          </Button>
+                        </>
+                      ),
+                    })
+                  );
+                }}
+              >
+                Create Template
+              </Button>
+            </>
+          ),
+          BodyComponent: (
+            <StudyManageTemplate
+              set_font_size={set_font_size}
+              set_rtf_impression={set_rtf_impression}
+              onSubmitTemplate={onSubmitTemplate}
+            ></StudyManageTemplate>
+          ),
+        })
+      );
+    } catch (error) {
+      dispatch(PageActions.SetHttpErrorPrompt(error));
+    }
+  };
 
   const onClickFullScreenStudy = useCallback(() => {
     if (is_full_screen_study) {
@@ -122,7 +149,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
         set_is_full_screen_study(false);
-        set_is_full_screen_imaging(false);
+        // set_is_full_screen_imaging(false);
       }
     };
 
@@ -134,7 +161,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
   const onClickFullScreenImaging = () => {
     if (iframeRef.current) {
-      set_is_full_screen_imaging(true);
+      // set_is_full_screen_imaging(true);
       iframeRef.current
         .requestFullscreen()
         .then(() => console.log("Iframe is fullscreen"))
@@ -147,17 +174,8 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
       window.open(study?.study_link, "_blank", "noopener,noreferrer");
     }
   };
-  // const exitFullscreen = () => {
-  //   if (document.fullscreenElement) {
-  //     document
-  //       .exitFullscreen()
-  //       .then(() => console.log("Exited fullscreen"))
-  //       .catch((err) => console.error("Error exiting fullscreen:", err));
-  //   }
-  // };
 
   const onEditorChange = (content: string) => {
-    // console.log(`content`, content);
     set_rtf_impression(content);
   };
 
@@ -170,10 +188,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
         resultdesc: StringUtil.HtmlToRtf(rtf_impression),
       };
 
-      // console.log(`payload`, payload.resultdesc);
-
-      // return;
-
       dispatch(
         PageActions.SetPageConfirmation({
           open: true,
@@ -181,12 +195,8 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
             dispatch(PageActions.SetLoading(true));
 
             try {
-              const study_result = await StudyApi.UpdateStudyImpression(radresultno, payload);
-
-              // console.log(`study_result`, study_result);
-
+              await StudyApi.UpdateStudyImpression(radresultno, payload);
               dispatch(PageActions.SetPrompt(`The study impression has been saved as ${tag === `D` ? `DRAFT` : `FINAL`}!`, `success`));
-
               dispatch(StudyActions.SetStudy(radresultno));
               dispatch(StudyActions.SetStudyImpression(radresultno));
             } catch (error) {
@@ -200,6 +210,27 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
     },
     [dispatch, radresultno, rtf_impression]
   );
+
+  const onRevokeStudy = useCallback(async () => {
+    dispatch(
+      PageActions.SetPageConfirmation({
+        open: true,
+        continueCallback: async () => {
+          dispatch(PageActions.SetLoading(true));
+          try {
+            await StudyApi.RevokeStudyImpression(radresultno);
+            dispatch(PageActions.SetPrompt(`The study impression has been revoked!`, `success`));
+            dispatch(StudyActions.SetStudy(radresultno));
+            dispatch(StudyActions.SetStudyImpression(radresultno));
+          } catch (error) {
+            dispatch(PageActions.SetHttpErrorPrompt(error));
+          }
+
+          dispatch(PageActions.SetLoading(false));
+        },
+      })
+    );
+  }, [dispatch, radresultno]);
 
   useEffect(() => {
     dispatch(
@@ -235,12 +266,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
           set_loading_study_impression(is_loading);
         })
       );
-
-      dispatch(
-        StudyActions.SetStudyTemplates((is_loading: boolean) => {
-          // set_loading_study_impression(is_loading);
-        })
-      );
     }
   }, [dispatch, radresultno]);
 
@@ -254,7 +279,9 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
     }
   }, [dispatch, radresultno, study_impression, loading_study_impression]);
 
-  return (
+  return loading_study || loading_study_impression ? (
+    <Loader></Loader>
+  ) : (
     <div>
       <Grid container rowSpacing={3} columnSpacing={3}>
         <Grid item xs={12}>
@@ -262,6 +289,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
             <StudyManagePagePatientInfo radresultno={radresultno}></StudyManagePagePatientInfo>
           </Paper>
         </Grid>
+
         <Grid item xs={12}>
           <Paper style={{ padding: `1em` }} ref={divRef}>
             <Grid container spacing={3}>
@@ -278,11 +306,12 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       alignItems={`center`}
                       alignContent={`center`}
                     >
-                      {["D", "C"].includes(study_impression?.resulttag) && (
-                        <IconButton title="Result Templates" onClick={onClickOpenTemplate} size={"small"}>
-                          <PlaylistAddCircleIcon fontSize="small" color="primary" />
-                        </IconButton>
-                      )}
+                      {/* // <IconButton title="View Result Templates" onClick={onClickOpenTemplate} size={"small"}>
+                        //   <PlaylistAddCircleIcon fontSize="small" color="primary" />
+                        // </IconButton> */}
+                      <Button variant="outlined" color="primary" onClick={onClickOpenTemplate} size={"small"}>
+                        View Templates
+                      </Button>
 
                       <IconButton title={"Open Imaging In New Window"} onClick={onClickOpenLinkNewWindow} size={"small"}>
                         <OpenInNewIcon fontSize="small" color="primary" />
@@ -316,7 +345,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                   <RtfComponent
                     value={rtf_impression}
                     onChange={onEditorChange}
-                    read_only={!["D", "C"].includes(study_impression?.resulttag)}
+                    read_only={!["D", "C", "R"].includes(study_impression?.resulttag)}
                     height={is_full_screen_study ? `82vh` : `700px`}
                     font_size={font_size}
                     set_font_size={set_font_size}
@@ -324,7 +353,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
                   <Box marginTop={`1em`} display={`grid`} gridAutoFlow={`column`} gap={`1em`} justifyContent={`end`} justifyItems={`end`}>
                     <Button
-                      variant="contained"
+                      variant="outlined"
                       color="secondary"
                       disabled={!["D", "C"].includes(study_impression?.resulttag)}
                       onClick={async () => {
@@ -336,21 +365,33 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
                     <Button
                       variant="contained"
-                      color="warning"
-                      disabled={!["D", "C"].includes(study_impression?.resulttag)}
+                      color="primary"
+                      disabled={!["D", "C", "R"].includes(study_impression?.resulttag)}
                       onClick={async () => {
                         await onSubmitStudy(`F`);
                       }}
                     >
                       Save as Final
                     </Button>
+
+                    {["P", "F"].includes(study_impression?.resulttag) && (
+                      <Button
+                        variant="contained"
+                        color="warning"
+                        onClick={async () => {
+                          await onRevokeStudy();
+                        }}
+                      >
+                        Revoke
+                      </Button>
+                    )}
                   </Box>
                 </div>
               </Grid>
 
               <Grid item xs={12} md={8}>
                 {!!study?.study_link && (
-                  <div style={{ height: is_full_screen_study ? `90.3vh` : `800px`, position: `relative`, background: `black` }}>
+                  <div style={{ height: is_full_screen_study ? `90.3vh` : `800px`, position: `relative`, borderRadius: `3px`, background: `black` }}>
                     <iframe
                       ref={iframeRef}
                       src={study.study_link}
@@ -378,27 +419,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
           </Paper>
         </Grid>
       </Grid>
-
-      <SideoutComponent
-        open={is_open_template}
-        set_open={(open: boolean) => set_is_open_template(open)}
-        title="Study Templates"
-        width={theme.breakpoints.values.md}
-        Action={null}
-        Body={
-          <Box height={`100%`}>
-            {/* <Box style={{ height: `calc(100vh - 230px)`, width: "100%" }}> */}
-            <DataGrid
-              getRowId={(p) => p.templateno}
-              density="compact"
-              rows={study_templates ?? []}
-              columns={study_template_columns}
-              loading={false}
-              disableSelectionOnClick
-            />
-          </Box>
-        }
-      ></SideoutComponent>
     </div>
   );
 });

@@ -1,10 +1,5 @@
 // import { Backdrop, CircularProgress, Typography, useTheme } from "@mui/core";
-import {
-  Backdrop,
-  CircularProgress,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Backdrop, CircularProgress, Typography, useTheme } from "@mui/material";
 import { FC, memo } from "react";
 import { useSelector } from "react-redux";
 import { RootStore } from "../Contexts/Store";
@@ -13,9 +8,7 @@ interface IPageLoader {}
 export const PageLoader: FC<IPageLoader> = memo(() => {
   const theme = useTheme();
 
-  const { show, message } = useSelector(
-    (state: RootStore) => state.PageReducer.page_loading
-  );
+  const { show, message } = useSelector((state: RootStore) => state.PageReducer.page_loading);
 
   return (
     <Backdrop
@@ -30,7 +23,8 @@ export const PageLoader: FC<IPageLoader> = memo(() => {
     >
       <CircularProgress color="inherit" />
       <Typography variant="subtitle1">
-        {message ?? `Loading, please wait...`}
+        {message ?? `Loading, thank you for your patience...`}
+        {/* <Typography variant="subtitle1">Loading, thank you for your patience...</Typography> */}
       </Typography>
     </Backdrop>
   );

@@ -23,12 +23,16 @@ namespace radsync_server.Repositories
 {
     public interface IStudyRepository
     {
-        Task<List<StudyDto>> GetStudys(UserDto user);
+        Task<StudyTemplateDto> AddStudyTemplate(StudyTemplateDto study, UserDto user);
+        Task<bool> DeleteStudyTemplate(string templateno, UserDto user);
         Task<StudyDto> GetStudy(string radresultno, UserDto user);
         Task<StudyDto> GetStudyImpression(string radresultno, UserDto user);
         Task<InpatientDtos> GetStudyPatient(string radresultno, UserDto user);
-        Task<StudyDto> UpdateStudyImpression(StudyDto study, UserDto user);
+        Task<List<StudyDto>> GetStudys(UserDto user);
         Task<List<StudyTemplateDto>> GetStudyTemplates(UserDto user);
+        Task<StudyDto> UpdateStudyImpression(StudyDto study, UserDto user);
+        Task<StudyTemplateDto> UpdateStudyTemplate(StudyTemplateDto study, UserDto user);
+        Task<bool> RevokeStudyImpression(string radresultno, UserDto user);
     }
 
     public class StudyRepository : IStudyRepository
@@ -163,7 +167,6 @@ namespace radsync_server.Repositories
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
 
-            //ALTER TABLE `radresult` ADD COLUMN `radresulthtml` TEXT NULL AFTER `machinecode`;
 
             StudyDto data = await con.QuerySingleOrDefaultAsync<StudyDto>($@"
                                             select radresultno,resultdesc, resulttag from `radresult` where radresultno =@radresultno limit 1   
@@ -175,8 +178,8 @@ namespace radsync_server.Repositories
                 throw new Exception($"The study with result number {radresultno} does not exist!");
             }
 
-            data.font_size = StringUtil.GetRtfFontSize(data.resultdesc);
-            data.radresulthtml = StringUtil.RtfToHtml(data.resultdesc);
+            data.font_size = StringUtil.GetRtfFontSize(data.resultdesc ?? "");
+            data.radresulthtml = StringUtil.RtfToHtml(data.resultdesc ?? "");
 
             return data;
         }
@@ -194,14 +197,30 @@ namespace radsync_server.Repositories
             bool is_draft = study.resulttag.ToUpper() == "D";
             bool is_final = study.resulttag.ToUpper() == "F";
 
-            int is_savable = await con.QuerySingleAsync<int>(
-                          $@"SELECT  IF(`resulttag` IN ('D', 'C'), 1, 0)   FROM `radresult` WHERE radresultno = @radresultno",
-                          study, transaction: transaction);
+            //int is_savable = await con.QuerySingleAsync<int>(
+            //              $@"SELECT  IF(`resulttag` IN ('D', 'C', 'R'), 1, 0)   FROM `radresult` WHERE radresultno = @radresultno",
+            //              study, transaction: transaction);
 
-            if (is_savable != 1)
+            //if (is_savable != 1)
+            //{
+            //    throw new Exception("The study can no longer be updated!");
+            //}
+
+            string status = await con.QuerySingleAsync<string>(
+                        $@"SELECT  resulttag   FROM `radresult` WHERE radresultno = @radresultno",
+                        study, transaction: transaction);
+
+
+            if (is_draft && new List<string> { "R", "F", "P" }.Contains(status))
             {
-                throw new Exception("The study can no longet be updated!");
+                throw new Exception("The study cannot be saved as DRAFT!");
             }
+
+            if (is_final && new List<string> { "F", "P" }.Contains(status))
+            {
+                throw new Exception("The study cannot be saved as FINAL!");
+            }
+
 
             study.user = user.username;
 
@@ -215,7 +234,7 @@ namespace radsync_server.Repositories
             else if (is_final)
             {
                 await con.ExecuteAsync(
-                               $@"update `radresult` set resulttag=@resulttag, radresulthtml = @radresulthtml,finaluser=@user, resultdate=now() where radresultno = @radresultno",
+                               $@"update `radresult` set resulttag=@resulttag, resultdesc = @resultdesc,finaluser=@user, resultdate=now() where radresultno = @radresultno",
                                study, transaction: transaction);
             }
 
@@ -224,23 +243,101 @@ namespace radsync_server.Repositories
 
         }
 
+        public async Task<bool> RevokeStudyImpression(string radresultno, UserDto user)
+        {
+            var con = await this.mysql_db_context.GetConnectionAsync();
+            var transaction = await this.mysql_db_context.BeginTransactionAsync();
+
+            int can_revoke = await con.QuerySingleAsync<int>(
+                          $@"SELECT  IF(`resulttag` IN ('F', 'P'), 1, 0)   FROM `radresult` WHERE radresultno = @radresultno",
+                          new { radresultno }, transaction: transaction);
+
+            if (can_revoke != 1)
+            {
+                throw new Exception("The study cannot be revoked!");
+            }
+
+            int success = await con.ExecuteAsync(
+                           $@"update `radresult` set resulttag='R'  where radresultno = @radresultno",
+                           new { radresultno, user.username }, transaction: transaction);
+
+            if (success > 0)
+            {
+                //insert into radresult_log
+            }
+
+            return success > 0;
+
+        }
+
+
         public async Task<List<StudyTemplateDto>> GetStudyTemplates(UserDto user)
         {
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
             List<StudyTemplateDto> templates = (await con.QueryAsync<StudyTemplateDto>($@"
-                                                        select r.templateno, r.templatekey , r.templatedesc  from resulttemplate r 
-                                                         {(UserConfig.IsDoctor(user.user_type) ? $" WHERE r.tempdoccode = @doccode" : "")}
+                                                        select r.templateno, r.templatekey , r.templatedesc  from resulttemplate r  
+                                                        WHERE {(UserConfig.IsDoctor(user.user_type) ? $"r.tempdoccode = @doccode" : "r.encodedby=@doccode")}
                                             ", new { doccode = user.username }, transaction: transaction)).ToList();
 
             foreach (var item in templates)
             {
-                item.font_size = StringUtil.GetRtfFontSize(item.templatedesc);
-                item.templatedeschtml = StringUtil.RtfToHtml(item.templatedesc);
+                item.font_size = StringUtil.GetRtfFontSize(item.templatedesc ?? "");
+                item.templatedeschtml = StringUtil.RtfToHtml(item.templatedesc ?? "");
             }
 
             return templates;
+        }
+
+        public async Task<StudyTemplateDto> AddStudyTemplate(StudyTemplateDto study, UserDto user)
+        {
+            var con = await this.mysql_db_context.GetConnectionAsync();
+            var transaction = await this.mysql_db_context.BeginTransactionAsync();
+
+            study.user = user.username;
+
+            int total = await con.QuerySingleOrDefaultAsync<int>("select  coalesce (MAX(CAST(rt.templateno AS UNSIGNED)), 0) from resulttemplate rt", new { }, transaction: transaction);
+            total = total + 1;
+
+            study.templateno = total + "";
+
+            await con.ExecuteAsync(
+                            $@"insert into resulttemplate set templateno=@templateno, tempdeptcode = '0004', templatekey = @templatekey,templatedesc = @templatedesc, 
+                               {(UserConfig.IsDoctor(user.user_type) ? "tempdoccode = @user," : "")} 
+                                encodedby = @user, templatedate  = now(), dateencoded  = now();",
+                            study, transaction: transaction);
+
+            return study;
+
+        }
+
+        public async Task<StudyTemplateDto> UpdateStudyTemplate(StudyTemplateDto study, UserDto user)
+        {
+            var con = await this.mysql_db_context.GetConnectionAsync();
+            var transaction = await this.mysql_db_context.BeginTransactionAsync();
+
+            study.user = user.username;
+
+            await con.ExecuteAsync(
+                            $@"update resulttemplate set templatekey = @templatekey,templatedesc = @templatedesc where templateno=@templateno;",
+                            study, transaction: transaction);
+
+            return study;
+        }
+
+
+        public async Task<bool> DeleteStudyTemplate(string templateno, UserDto user)
+        {
+            var con = await this.mysql_db_context.GetConnectionAsync();
+            var transaction = await this.mysql_db_context.BeginTransactionAsync();
+
+
+            int success = await con.ExecuteAsync(
+                             $@"delete from resulttemplate where templateno=@templateno;",
+                             new { templateno  }, transaction: transaction);
+
+            return success > 0;
         }
 
     }

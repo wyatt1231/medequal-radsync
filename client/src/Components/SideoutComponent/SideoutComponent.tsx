@@ -3,17 +3,19 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import * as React from "react";
 import SideoutComponentUi from "./SideoutComponentUi";
-type SideoutComponentProps = {
-  open: boolean;
-  set_open: (open: boolean) => void;
+export type SideoutComponentProps = {
+  open?: boolean;
+  set_open?: (open: boolean) => void;
   title?: string;
-  Body?: ReactJSXElement;
-  Action?: ReactJSXElement;
-  width: string | number;
+  BodyComponent?: ReactJSXElement;
+  ActionComponent?: ReactJSXElement;
+  width: string;
+  id?: number;
 };
 
 const SideoutComponent: React.FC<SideoutComponentProps> = (props) => {
   //   const [state, set_state] = React.useState(false);
+
   const theme = useTheme();
 
   const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
@@ -33,7 +35,7 @@ const SideoutComponent: React.FC<SideoutComponentProps> = (props) => {
           <Box
             width={props.width}
             display={`grid`}
-            gridAutoRows={`60px ${!!props.Action == null ? "60px" : "0"} 1fr`}
+            gridAutoRows={`60px ${!!props.ActionComponent ? "60px" : "0"} 1fr`}
             alignItems={`center`}
             alignContent={`center`}
           >
@@ -60,9 +62,9 @@ const SideoutComponent: React.FC<SideoutComponentProps> = (props) => {
             </Box>
             <Box
               padding={theme.spacing(1)}
-              height={!!props.Action ? `60px` : `0`}
-              maxHeight={!!props.Action ? `60px` : `0`}
-              borderBottom={!!props.Action ? `2px solid rgba(0,0,0,0.1)` : `none`}
+              height={!!props.ActionComponent ? `60px` : `0`}
+              maxHeight={!!props.ActionComponent ? `60px` : `0`}
+              borderBottom={!!props.ActionComponent ? `2px solid rgba(0,0,0,0.1)` : `none`}
               display={`grid`}
               gridAutoFlow={`column`}
               gap={theme.spacing(1)}
@@ -71,10 +73,10 @@ const SideoutComponent: React.FC<SideoutComponentProps> = (props) => {
               alignItems={`center`}
               alignContent={`center`}
             >
-              {props.Action}
+              {props.ActionComponent}
             </Box>
-            <Box padding={theme.spacing(1)} height={`calc(100vh - ${!!props.Action ? "120px" : "60px"})`} overflow={`auto`}>
-              {props.Body}
+            <Box padding={theme.spacing(1)} height={`calc(100vh - ${!!props.ActionComponent ? "120px" : "60px"})`} overflow={`auto`}>
+              {props.BodyComponent}
             </Box>
           </Box>
         </SideoutComponentUi>

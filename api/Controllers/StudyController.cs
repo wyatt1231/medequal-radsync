@@ -133,6 +133,24 @@ namespace radsync_server.Controllers
         }
 
 
+        [HttpPut("{radresultno}/impression/revoke")]
+        public async Task<ActionResult<bool>> RevokeStudyImpression(string radresultno)
+        {
+            await mysql_db_context.BeginTransactionAsync();
+
+            UserDto user = new UserDto()
+            {
+                username = User.Identity.Name,
+                user_type = UseClaims.PriorityRole((ClaimsIdentity)User.Identity)
+            };
+
+            var data = await study_repo.RevokeStudyImpression(radresultno, user);
+
+            await mysql_db_context.CommitTransactionAsync();
+            return data;
+        }
+
+
         #region TEMPLATES
 
         [HttpGet("template")]
@@ -151,6 +169,59 @@ namespace radsync_server.Controllers
             await mysql_db_context.CommitTransactionAsync();
             return data;
         }
+
+        [HttpPost("template")]
+        public async Task<ActionResult<StudyTemplateDto>> AddStudyTemplate([FromBody] StudyTemplateDto study_template)
+        {
+            await mysql_db_context.BeginTransactionAsync();
+
+            UserDto user = new UserDto()
+            {
+                username = User.Identity.Name,
+                user_type = UseClaims.PriorityRole((ClaimsIdentity)User.Identity)
+            };
+
+            var data = await study_repo.AddStudyTemplate(study_template, user);
+
+            await mysql_db_context.CommitTransactionAsync();
+            return data;
+        }
+
+        [HttpPut("template")]
+        public async Task<ActionResult<StudyTemplateDto>> UpdateStudyTemplate([FromBody] StudyTemplateDto study_template)
+        {
+            await mysql_db_context.BeginTransactionAsync();
+
+            UserDto user = new UserDto()
+            {
+                username = User.Identity.Name,
+                user_type = UseClaims.PriorityRole((ClaimsIdentity)User.Identity)
+            };
+
+            var data = await study_repo.UpdateStudyTemplate(study_template, user);
+
+            await mysql_db_context.CommitTransactionAsync();
+            return data;
+        }
+
+
+        [HttpDelete("template/{templateno}")]
+        public async Task<ActionResult<bool>> DeleteStudyTemplate(string templateno)
+        {
+            await mysql_db_context.BeginTransactionAsync();
+
+            UserDto user = new UserDto()
+            {
+                username = User.Identity.Name,
+                user_type = UseClaims.PriorityRole((ClaimsIdentity)User.Identity)
+            };
+
+            var data = await study_repo.DeleteStudyTemplate(templateno, user);
+
+            await mysql_db_context.CommitTransactionAsync();
+            return data;
+        }
+
 
         #endregion
 

@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import { Box, MenuItem, TextField } from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
 import ReactQuill, { Quill } from "react-quill"; // Import ReactQuill component
 import "react-quill/dist/quill.snow.css"; // Import Quill's styles
+import { v4 } from "uuid";
 
-import { Box, MenuItem, TextField } from "@mui/material";
 import RtfComponentUi from "./RtfComponentUi";
 
 const setUpQuill = function SetupQuill() {
@@ -37,6 +38,7 @@ export const formats = ["bold", "italic", "underline", "size"];
 // Type for the value of the editor
 type RtfComponentProps = {
   value: string;
+  label?: string;
   read_only?: boolean;
   height?: string;
   onChange: (value: string) => void;
@@ -44,9 +46,9 @@ type RtfComponentProps = {
   set_font_size?: React.Dispatch<React.SetStateAction<string>>;
 };
 
-const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only, height, font_size, set_font_size }) => {
+const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only, height, font_size, set_font_size, ...props }) => {
   const editorRef = useRef(null);
-  // const [font_size, set_font_size] = useState(`11pt`);
+  const [toolbar_id, set_toolbar_id] = useState(`rtf-toolbar-${v4()}`);
 
   const onSetFontSize = (value) => {
     const font_size = value;
@@ -65,9 +67,11 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
   // Optional: You can define Quill configurations here
 
   useEffect(() => {
-    const editor: any = editorRef.current.editor;
+    const editor: any = editorRef?.current?.editor;
+    if (!!editor) {
+      editor.keyboard.bindings[`9`] = null; //Disable tab
+    }
 
-    editor.keyboard.bindings[`9`] = null; //Disable tab
     // Clean up when component unmounts
     return () => {
       // Remove the custom key bindings on unmount
@@ -79,8 +83,9 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
   }, [font_size, value]);
 
   return (
-    <RtfComponentUi className={`editor-container`}>
-      <div id="toolbar">
+    <RtfComponentUi id={props.label} className={`editor-container`}>
+      {/* <div id="toolbar"> */}
+      <div id={toolbar_id}>
         <Box>
           <span className="ql-formats">
             <button className="ql-bold" />
@@ -136,11 +141,10 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
           readOnly={read_only}
           modules={{
             toolbar: {
-              container: "#toolbar",
+              container: `#` + toolbar_id,
             },
           }} // Apply the toolbar configuration
           formats={formats}
-          style={{ fontFamily: "Arial" }}
         />
       </div>
     </RtfComponentUi>

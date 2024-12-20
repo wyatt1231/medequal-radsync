@@ -4,6 +4,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { SnackbarProvider } from "notistack";
 import React from "react";
 import { Provider as ReduxProvider } from "react-redux";
+import StackSideoutComponent from "./Components/StackSideoutComponent/StackSideoutComponent";
 import Store from "./Contexts/Store";
 import Routes from "./Routes/Routes";
 import "./Styles/App.css";
@@ -31,16 +32,13 @@ function App() {
             horizontal: "right",
           }}
           action={(event: React.ReactText) => (
-            <IconButton
-              style={{ backgroundColor: "rgba(255,255,255,.8)" }}
-              size="small"
-              onClick={onClickDismiss(event)}
-            >
+            <IconButton style={{ backgroundColor: "rgba(255,255,255,.8)" }} size="small" onClick={onClickDismiss(event)}>
               <CloseRoundedIcon color="error" />
             </IconButton>
           )}
         >
           <Routes />
+          <StackSideoutComponent></StackSideoutComponent>
         </SnackbarProvider>
       </ThemeProvider>
     </ReduxProvider>
