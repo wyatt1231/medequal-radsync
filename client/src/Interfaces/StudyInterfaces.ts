@@ -25,6 +25,7 @@ export interface StudyDto {
   dateperformed?: string;
   proccode?: string;
   study_link?: string;
+  font_size?: string;
 }
 
 export interface StudyTemplateDto {
@@ -32,4 +33,5 @@ export interface StudyTemplateDto {
   templatekey?: string;
   templatedesc?: string;
   templatedeschtml?: string;
+  font_size?: string;
 }

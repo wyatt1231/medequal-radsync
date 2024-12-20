@@ -25,6 +25,8 @@ interface StudyManagePageParamsProps {
 }
 
 const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const divRef = useRef(null);
   const theme = useTheme();
   const params = useParams<StudyManagePageParamsProps>();
   const { radresultno } = params;
@@ -32,8 +34,8 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
   const { study, study_impression, study_templates } = useSelector((store: RootStore) => store.StudyReducer);
 
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const divRef = useRef(null);
+  const [font_size, set_font_size] = useState(`11pt`);
+
   const [is_full_screen_study, set_is_full_screen_study] = useState(false);
   const [is_full_screen_imaging, set_is_full_screen_imaging] = useState(false);
   const [rtf_impression, set_rtf_impression] = useState<string>("");
@@ -72,6 +74,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
             title={"Use Study Template"}
             onClick={() => {
               if (!!row.templatedeschtml) {
+                set_font_size(row.font_size ?? `11pt`);
                 set_rtf_impression(row.templatedeschtml);
                 set_is_open_template(false);
 
@@ -244,7 +247,10 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   useEffect(() => {
     if (!!radresultno && !!study_impression && !loading_study_impression) {
       // console.log(`study_impression?.radresulthtml `, study_impression?.radresulthtml);
+
       set_rtf_impression(study_impression?.radresulthtml ?? ``);
+
+      set_font_size(study_impression?.font_size ?? `11pt`);
     }
   }, [dispatch, radresultno, study_impression, loading_study_impression]);
 
@@ -257,7 +263,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
           </Paper>
         </Grid>
         <Grid item xs={12}>
-          <Paper style={{ padding: `1em`, width: "100%", height: "100%" }} ref={divRef}>
+          <Paper style={{ padding: `1em` }} ref={divRef}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Typography component={"div"} className="form-separator">
@@ -311,7 +317,9 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                     value={rtf_impression}
                     onChange={onEditorChange}
                     read_only={!["D", "C"].includes(study_impression?.resulttag)}
-                    height={is_full_screen_study ? `89vh` : `730px`}
+                    height={is_full_screen_study ? `82vh` : `700px`}
+                    font_size={font_size}
+                    set_font_size={set_font_size}
                   />
 
                   <Box marginTop={`1em`} display={`grid`} gridAutoFlow={`column`} gap={`1em`} justifyContent={`end`} justifyItems={`end`}>
@@ -342,7 +350,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
               <Grid item xs={12} md={8}>
                 {!!study?.study_link && (
-                  <div style={{ height: is_full_screen_study ? `93vh` : `800px`, position: `relative`, background: `black` }}>
+                  <div style={{ height: is_full_screen_study ? `90.3vh` : `800px`, position: `relative`, background: `black` }}>
                     <iframe
                       ref={iframeRef}
                       src={study.study_link}

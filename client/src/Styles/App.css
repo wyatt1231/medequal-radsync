@@ -2,14 +2,22 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* font-family: "Roboto", "Segoe UI", Helvetica, Tahoma, Geneva, Verdana,
+    sans-serif !important; */
+}
+
+
+html {
   font-family: "Roboto", "Segoe UI", Helvetica, Tahoma, Geneva, Verdana,
-    sans-serif !important;
+  sans-serif !important;
 }
 
 body {
   width: calc(100vw - (100vw - 100%));
   max-width: calc(100vw - (100vw - 100%));
   background-color: #fafafa !important;
+  font-family: "Roboto", "Segoe UI", Helvetica, Tahoma, Geneva, Verdana,
+  sans-serif !important;
 }
 
 iframe > body {
@@ -165,7 +173,7 @@ tr td:last-child {
   margin-bottom: .5em !important;
 }
 
-.ql-picker-label[data-value="8px"]::before { content: '8px' !important; }
+/* .ql-picker-label[data-value="8px"]::before { content: '8px' !important; }
 .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="8px"]::before {
   content: '8px';
   font-size: 8px !important;
@@ -195,6 +203,19 @@ tr td:last-child {
   font-size: 12px !important;
 }
 
-.ql-container {
-  font-size: 11px; /* Default font size for text in Quill editor */
+ */
+/* 
+ .ql-container {
+  font-family: 'Arial'; 
+  font-size: 11px;
+}
+
+.ql-editor {
+  font-family: 'Arial';  
+  font-size: 11px;  
+} */
+
+
+.editor-font-8px > .ql-container.ql-snow {
+    font-size: 8px !important;
 }

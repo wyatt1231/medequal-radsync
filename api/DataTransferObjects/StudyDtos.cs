@@ -32,6 +32,7 @@
             public string proccode { get; set; }
             public string study_link { get;set;}
             public string user { get;set;}
+            public string font_size { get;set;}
 
         }
 
@@ -41,6 +42,7 @@
             public string templatekey { get; set; }
             public string templatedesc { get; set; }
             public string templatedeschtml { get; set; }
+            public string font_size { get; set; }
         }
 
     }

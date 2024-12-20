@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace Api.Utils
@@ -6,9 +7,9 @@ namespace Api.Utils
     public class StringUtil
     {
 
-        public static string RtfToHtml(string rtf_format)
+        public static string RtfToHtml(string rtf)
         {
-            string html = RtfPipe.Rtf.ToHtml(rtf_format);
+            string html = RtfPipe.Rtf.ToHtml(rtf);
 
             html = html.Replace(" &nbsp;", "&nbsp;&nbsp;");
             html = html.Replace("pt", "px");
@@ -19,6 +20,28 @@ namespace Api.Utils
             Debug.WriteLine("------------------------------------------------");
 
             return html;
+        }
+
+        public static string GetRtfFontSize(string rtf)
+        {
+
+            // Regular expression pattern to extract the first font size following \fs
+            string pattern = @"\\fs(\d+)";
+
+            // Search for the first font size in the RTF string using regex
+            Match match = Regex.Match(rtf, pattern);
+
+            // Check if a match is found and display the font size
+            if (match.Success)
+            {
+                int fontSizeInHalfPoints = int.Parse(match.Groups[1].Value);
+                double fontSizeInPoints = fontSizeInHalfPoints / 2.0; // Convert from half-points to points
+                return Convert.ToInt32(fontSizeInPoints) + "pt";
+            }
+            else
+            {
+                return "11pt";
+            }
         }
 
         private static string CleanNonHtmlCharacters(string rtf)

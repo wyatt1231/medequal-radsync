@@ -166,7 +166,7 @@ namespace radsync_server.Repositories
             //ALTER TABLE `radresult` ADD COLUMN `radresulthtml` TEXT NULL AFTER `machinecode`;
 
             StudyDto data = await con.QuerySingleOrDefaultAsync<StudyDto>($@"
-                                            select radresultno,resultdesc,radresulthtml, resulttag from `radresult` where radresultno =@radresultno limit 1   
+                                            select radresultno,resultdesc, resulttag from `radresult` where radresultno =@radresultno limit 1   
                                             "
                                        , new { radresultno }, transaction: transaction);
 
@@ -175,10 +175,8 @@ namespace radsync_server.Repositories
                 throw new Exception($"The study with result number {radresultno} does not exist!");
             }
 
-            //data.radresulthtml = RtfPipe.Rtf.ToHtml(data.resultdesc);
-            data.radresulthtml =StringUtil.RtfToHtml(data.resultdesc);
-
-            //data.radresulthtml = data.resultdesc;
+            data.font_size = StringUtil.GetRtfFontSize(data.resultdesc);
+            data.radresulthtml = StringUtil.RtfToHtml(data.resultdesc);
 
             return data;
         }
@@ -232,9 +230,15 @@ namespace radsync_server.Repositories
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
             List<StudyTemplateDto> templates = (await con.QueryAsync<StudyTemplateDto>($@"
-                                                        select r.templateno, r.templatekey , r.templatedesc , r.templatedeschtml from resulttemplate r 
+                                                        select r.templateno, r.templatekey , r.templatedesc  from resulttemplate r 
                                                          {(UserConfig.IsDoctor(user.user_type) ? $" WHERE r.tempdoccode = @doccode" : "")}
                                             ", new { doccode = user.username }, transaction: transaction)).ToList();
+
+            foreach (var item in templates)
+            {
+                item.font_size = StringUtil.GetRtfFontSize(item.templatedesc);
+                item.templatedeschtml = StringUtil.RtfToHtml(item.templatedesc);
+            }
 
             return templates;
         }

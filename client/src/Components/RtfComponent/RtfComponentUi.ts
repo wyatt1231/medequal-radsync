@@ -8,11 +8,11 @@ const RtfComponentUi = styled(`div`)`
   border-radius: 3px !important;
   /* border: 1px solid black !important; */
 
-  .ql-container.ql-snow {
+  .ql-editor {
     border: none !important;
   }
-
-  .ql-editor {
+  .ql-container.ql-snow {
+    font-family: "Arial" !important;
     border: none !important;
   }
 
