@@ -133,8 +133,8 @@ namespace radsync_server.Controllers
         }
 
 
-        [HttpPut("{radresultno}/impression/revoke")]
-        public async Task<ActionResult<bool>> RevokeStudyImpression(string radresultno)
+        [HttpPut("{radresultno}/impression/unverify")]
+        public async Task<ActionResult<bool>> UnverifyStudyImpression(string radresultno)
         {
             await mysql_db_context.BeginTransactionAsync();
 
@@ -144,7 +144,7 @@ namespace radsync_server.Controllers
                 user_type = UseClaims.PriorityRole((ClaimsIdentity)User.Identity)
             };
 
-            var data = await study_repo.RevokeStudyImpression(radresultno, user);
+            var data = await study_repo.UnverifyStudyImpression(radresultno, user);
 
             await mysql_db_context.CommitTransactionAsync();
             return data;

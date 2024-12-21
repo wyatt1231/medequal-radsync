@@ -41,9 +41,9 @@ const UpdateStudyImpression = async (radresultno: string, payload: StudyDto): Pr
   return response.data;
 };
 
-const RevokeStudyImpression = async (radresultno: string): Promise<StudyDto> => {
+const UnverifyStudyImpression = async (radresultno: string): Promise<StudyDto> => {
   const response = await Axios.put(
-    SERVER_URL + BASE_URL + `/${radresultno}/impression/revoke`,
+    SERVER_URL + BASE_URL + `/${radresultno}/impression/unverify`,
     {},
     {
       headers: FetchJsonHeader,
@@ -90,7 +90,7 @@ const StudyApi = {
   GetStudyPatient,
   GetStudyImpression,
   UpdateStudyImpression,
-  RevokeStudyImpression,
+  UnverifyStudyImpression,
   GetStudyTemplates,
   AddStudyTemplate,
   UpdateStudyTemplate,

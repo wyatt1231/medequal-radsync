@@ -14,8 +14,13 @@ interface SidebarLayoutProps {}
 const PageNavLinks = [
   {
     hasSubLinks: false,
-    text: "Study",
+    text: "Studies",
     to: "/study",
+  },
+  {
+    hasSubLinks: false,
+    text: "Templates",
+    to: "/template",
   },
 ];
 

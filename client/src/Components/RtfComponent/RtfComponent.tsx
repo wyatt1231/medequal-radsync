@@ -105,6 +105,10 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
                   disableScrollLock: true,
                 },
               }}
+              InputProps={{
+                readOnly: read_only,
+              }}
+              // disabled={read_only}
               style={{
                 width: 60,
               }}

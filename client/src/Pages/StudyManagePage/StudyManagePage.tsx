@@ -3,7 +3,7 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 // import PlaylistAddCircleIcon from "@mui/icons-material/PlaylistAddCheck";
 import PreviewIcon from "@mui/icons-material/Preview";
-import { Box, Button, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
+import { Box, Button, Chip, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
 import { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -211,14 +211,14 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
     [dispatch, radresultno, rtf_impression]
   );
 
-  const onRevokeStudy = useCallback(async () => {
+  const onUnverifyStudy = useCallback(async () => {
     dispatch(
       PageActions.SetPageConfirmation({
         open: true,
         continueCallback: async () => {
           dispatch(PageActions.SetLoading(true));
           try {
-            await StudyApi.RevokeStudyImpression(radresultno);
+            await StudyApi.UnverifyStudyImpression(radresultno);
             dispatch(PageActions.SetPrompt(`The study impression has been revoked!`, `success`));
             dispatch(StudyActions.SetStudy(radresultno));
             dispatch(StudyActions.SetStudyImpression(radresultno));
@@ -296,7 +296,19 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
               <Grid item xs={12}>
                 <Typography component={"div"} className="form-separator">
                   <Box display={`grid`} gridAutoFlow={`column`} gridAutoColumns={`1fr auto`} alignItems={`center`} alignContent={`center`}>
-                    <div>Study/Imaging Report</div>
+                    <Box
+                      display={`grid`}
+                      gridAutoFlow={`column`}
+                      gap={`1em`}
+                      justifyContent={`start`}
+                      justifyItems={`start`}
+                      alignItems={`center`}
+                      alignContent={`center`}
+                    >
+                      <span>Study/Imaging Report</span>
+
+                      <Chip label={StringUtil.ReplaceNull(study?.resulttag, "-")} color="info" size="small" />
+                    </Box>
                     <Box
                       display={`grid`}
                       gridAutoFlow={`column`}
@@ -345,7 +357,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                   <RtfComponent
                     value={rtf_impression}
                     onChange={onEditorChange}
-                    read_only={!["D", "C", "R"].includes(study_impression?.resulttag)}
+                    read_only={!["D"].includes(study_impression?.resulttag)}
                     height={is_full_screen_study ? `82vh` : `700px`}
                     font_size={font_size}
                     set_font_size={set_font_size}
@@ -355,7 +367,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                     <Button
                       variant="outlined"
                       color="secondary"
-                      disabled={!["D", "C"].includes(study_impression?.resulttag)}
+                      disabled={!["D"].includes(study_impression?.resulttag)}
                       onClick={async () => {
                         await onSubmitStudy(`D`);
                       }}
@@ -366,7 +378,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                     <Button
                       variant="contained"
                       color="primary"
-                      disabled={!["D", "C", "R"].includes(study_impression?.resulttag)}
+                      disabled={!["D"].includes(study_impression?.resulttag)}
                       onClick={async () => {
                         await onSubmitStudy(`F`);
                       }}
@@ -374,15 +386,15 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       Save as Final
                     </Button>
 
-                    {["P", "F"].includes(study_impression?.resulttag) && (
+                    {["F"].includes(study_impression?.resulttag) && (
                       <Button
                         variant="contained"
                         color="warning"
                         onClick={async () => {
-                          await onRevokeStudy();
+                          await onUnverifyStudy();
                         }}
                       >
-                        Revoke
+                        Unverify
                       </Button>
                     )}
                   </Box>

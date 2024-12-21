@@ -61,10 +61,14 @@ let theme = createTheme({
     backgroundColor: "unset",
     color: `black`,
   },
+
   typography: {
     button: {
       // textTransform: "unset",
     },
+    // subtitle1: {
+    //   textTransform: `uppercase`,
+    // },
 
     fontFamily: [
       "-apple-system",

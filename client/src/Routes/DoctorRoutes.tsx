@@ -6,6 +6,7 @@ import ConfigActions from "../Contexts/Actions/ConfigActions";
 import UserActions from "../Contexts/Actions/UserActions";
 import StudyManagePage from "../Pages/StudyManagePage/StudyManagePage";
 import StudyPage from "../Pages/StudyPage/StudyPage";
+import TemplatePage from "../Pages/TemplatePage/TemplatePage";
 import UserPasswordPage from "../Pages/UserPasswordPage/UserPasswordPage";
 
 interface DoctorRoutesProps {}
@@ -24,6 +25,8 @@ const DoctorRoutes: FC<DoctorRoutesProps> = memo(() => {
         <Route path="/" exact component={StudyPage} />
         <Route path="/study" exact component={StudyPage}></Route>
         <Route path="/study/:radresultno" strict component={StudyManagePage} />
+
+        <Route path="/template" exact component={TemplatePage} />
 
         <Route path="/change-password" exact component={UserPasswordPage} />
         <Route path="/404" exact component={PageNotFound} />

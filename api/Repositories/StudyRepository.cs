@@ -32,7 +32,7 @@ namespace radsync_server.Repositories
         Task<List<StudyTemplateDto>> GetStudyTemplates(UserDto user);
         Task<StudyDto> UpdateStudyImpression(StudyDto study, UserDto user);
         Task<StudyTemplateDto> UpdateStudyTemplate(StudyTemplateDto study, UserDto user);
-        Task<bool> RevokeStudyImpression(string radresultno, UserDto user);
+        Task<bool> UnverifyStudyImpression(string radresultno, UserDto user);
     }
 
     public class StudyRepository : IStudyRepository
@@ -194,80 +194,83 @@ namespace radsync_server.Repositories
                 throw new Exception("Only study tags 'Draft' or 'Final' are accepted!");
             }
 
-            bool is_draft = study.resulttag.ToUpper() == "D";
-            bool is_final = study.resulttag.ToUpper() == "F";
-
-            //int is_savable = await con.QuerySingleAsync<int>(
-            //              $@"SELECT  IF(`resulttag` IN ('D', 'C', 'R'), 1, 0)   FROM `radresult` WHERE radresultno = @radresultno",
-            //              study, transaction: transaction);
-
-            //if (is_savable != 1)
-            //{
-            //    throw new Exception("The study can no longer be updated!");
-            //}
+            bool is_save_as_draft = study.resulttag.ToUpper() == "D";
+            bool is_save_as_final = study.resulttag.ToUpper() == "F";
 
             string status = await con.QuerySingleAsync<string>(
                         $@"SELECT  resulttag   FROM `radresult` WHERE radresultno = @radresultno",
                         study, transaction: transaction);
 
-
-            if (is_draft && new List<string> { "R", "F", "P" }.Contains(status))
+            if (status == "P")
             {
-                throw new Exception("The study cannot be saved as DRAFT!");
+                throw new Exception("You are not allowed to update this result because it is already set as PERFORMED");
             }
 
-            if (is_final && new List<string> { "F", "P" }.Contains(status))
+
+            if (is_save_as_draft && new List<string> { "F", "P", "C" }.Contains(status))
             {
-                throw new Exception("The study cannot be saved as FINAL!");
+                throw new Exception("You are not allowed to save this result as DRAFT");
             }
 
+            if (is_save_as_final && new List<string> { "F", "P", "C" }.Contains(status))
+            {
+                throw new Exception("You are not allowed to save this result as FINAL");
+            }
+
+            var study_result_entity = await this.GetStudy(study.radresultno, user);
 
             study.user = user.username;
 
-            if (is_draft)
+            if (is_save_as_draft)
             {
                 await con.ExecuteAsync(
                             $@"update `radresult` set resulttag=@resulttag, resultdesc = @resultdesc,draftuser=@user, resultdate=now() where radresultno = @radresultno",
                             study, transaction: transaction);
 
             }
-            else if (is_final)
+            else if (is_save_as_final)
             {
-                await con.ExecuteAsync(
+                int is_success_update_result = await con.ExecuteAsync(
                                $@"update `radresult` set resulttag=@resulttag, resultdesc = @resultdesc,finaluser=@user, resultdate=now() where radresultno = @radresultno",
                                study, transaction: transaction);
-            }
 
+                await con.ExecuteAsync(
+                               $@"update trandtls  set done = 'Y' where resultno = @radresultno and csno = @csno;",
+                               new { study_result_entity.radresultno, study_result_entity.csno }, transaction: transaction);
+            }
 
             return study;
 
         }
 
-        public async Task<bool> RevokeStudyImpression(string radresultno, UserDto user)
+        public async Task<bool> UnverifyStudyImpression(string radresultno, UserDto user)
         {
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
-            int can_revoke = await con.QuerySingleAsync<int>(
-                          $@"SELECT  IF(`resulttag` IN ('F', 'P'), 1, 0)   FROM `radresult` WHERE radresultno = @radresultno",
+            int is_allow_verify = await con.QuerySingleAsync<int>(
+                          $@"SELECT IF(resulttag IN ('F'), 1, 0)   FROM `radresult` WHERE radresultno = @radresultno",
                           new { radresultno }, transaction: transaction);
 
-            if (can_revoke != 1)
+            if (is_allow_verify != 1)
             {
-                throw new Exception("The study cannot be revoked!");
+                throw new Exception("You are not allowed to unverify this impression!");
             }
 
-            int success = await con.ExecuteAsync(
-                           $@"update `radresult` set resulttag='R'  where radresultno = @radresultno",
+            int unverify_success = await con.ExecuteAsync(
+                           $@"update `radresult` set resulttag='D' where radresultno = @radresultno",
                            new { radresultno, user.username }, transaction: transaction);
 
-            if (success > 0)
+            if (unverify_success < 1)
             {
-                //insert into radresult_log
+                throw new Exception("The result has not been set to UNVERIED!");
             }
 
-            return success > 0;
+            int is_success_log = await con.ExecuteAsync(
+                                $@"insert into radresult_log select *, now() addendum_date , @username addendum_by , @host, @ip from radresult where radresultno  = @radresultno",
+                                new { radresultno, username = user.username, host = "", ip = "" }, transaction: transaction);
 
+            return is_success_log > 0;
         }
 
 
@@ -335,7 +338,7 @@ namespace radsync_server.Repositories
 
             int success = await con.ExecuteAsync(
                              $@"delete from resulttemplate where templateno=@templateno;",
-                             new { templateno  }, transaction: transaction);
+                             new { templateno }, transaction: transaction);
 
             return success > 0;
         }

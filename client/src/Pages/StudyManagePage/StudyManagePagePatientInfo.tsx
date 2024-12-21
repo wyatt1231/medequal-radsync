@@ -73,7 +73,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
       <Grid item xs={12} sm={6} md={3} lg={2}>
         <TextField
           label="Birth Date"
-          value={DateUtils.ReplaceDateUtil(study_patient?.birthdate, "-") + " (" + StringUtil.ReplaceNull(study_patient?.age, "-") + ")"}
+          value={DateUtils.ReplaceDateUtil(study_patient?.birthdate, "-") + " (" + StringUtil.ReplaceNull(study_patient?.age, "-") + " y/o)"}
           fullWidth
           variant="standard"
           multiline
@@ -101,7 +101,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
         />
       </Grid>
 
-      <Grid item xs={12} sm={6} md={3} lg={4}>
+      <Grid item xs={12} sm={4} md={3} lg={2}>
         <TextField
           label="Admission Date"
           value={DateUtils.ReplaceDateTimeUtil(study_patient?.admissiondate, "-")}
@@ -115,7 +115,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
         />
       </Grid>
 
-      <Grid item xs={12} sm={6} md={3} lg={4}>
+      <Grid item xs={12} sm={4} md={3} lg={2}>
         <TextField
           label="Discharge Date"
           value={DateUtils.ReplaceDateTimeUtil(study_patient?.dischargedate, "-")}
@@ -129,7 +129,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
         />
       </Grid>
 
-      <Grid item xs={12} sm={6} md={3} lg={4}>
+      <Grid item xs={12} sm={4} md={3} lg={2}>
         <TextField
           label="Chief Complaint"
           value={StringUtil.ReplaceNull(study_patient?.chiefcomplaint, "-")}
@@ -152,20 +152,6 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
         <TextField
           label="Result Number"
           value={StringUtil.ReplaceNull(study?.radresultno, "-")}
-          fullWidth
-          variant="standard"
-          multiline
-          InputProps={{
-            readOnly: true,
-            disableUnderline: true,
-          }}
-        />
-      </Grid>
-
-      <Grid item xs={12} sm={6} md={3} lg={2}>
-        <TextField
-          label="Result Tag"
-          value={StringUtil.ReplaceNull(study?.resulttag, "-")}
           fullWidth
           variant="standard"
           multiline
@@ -207,7 +193,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
       <Grid item xs={12} sm={6} md={3} lg={2}>
         <TextField
           label="Study Date"
-          value={DateUtils.ReplaceDateUtil(study?.studydate, "-")}
+          value={DateUtils.ReplaceDateTimeUtil(study?.studydate, "-")}
           fullWidth
           variant="standard"
           multiline

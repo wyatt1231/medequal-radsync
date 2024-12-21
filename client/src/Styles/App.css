@@ -169,8 +169,10 @@ tr td:last-child {
 
 .form-separator {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  padding-bottom: .5em;
-  margin-bottom: .5em !important;
+  padding-bottom: 1em;
+  /* margin-bottom: .5em !important; */
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
 }
 
 /* .ql-picker-label[data-value="8px"]::before { content: '8px' !important; }
