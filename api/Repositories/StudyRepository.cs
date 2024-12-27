@@ -59,7 +59,7 @@ namespace radsync_server.Repositories
                                          GetRadResultTag(rd.resulttag) resulttag,rd.hospitalno 
                                          ,rd.patrefno,CONCAT(pat.lastname,', ',pat.firstname,' ',pat.suffix,' ',pat.middlename) AS patientname 
                                          ,DATE(birthdate) AS dob,pat.sex 
-                                         ,radresultno radresultno,rd.dateencoded AS studydate 
+                                         ,radresultno radresultno,DATE_FORMAT(rd.dateencoded, '%Y-%m-%dT%H:%i:%s') AS studydate
                                          ,procdesc,urgency,modality,reqdoccode,
                                          CONCAT( COALESCE(dm.`lastname`,''),', ', COALESCE(dm.`firstname`,''),' ',COALESCE(dm.`middlename`,''))  referringdoc 
                                          ,deptname sourcedept 

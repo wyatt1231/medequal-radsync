@@ -99,7 +99,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
     }
   }, []);
 
-  console.log(`position`, position);
+  console.log(`studys`, studys);
 
   useEffect(() => {
     dispatch(
