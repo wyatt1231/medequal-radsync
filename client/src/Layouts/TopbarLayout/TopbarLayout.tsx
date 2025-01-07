@@ -1,3 +1,4 @@
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import { IconButton, useMediaQuery, useTheme } from "@mui/material";
 import clsx from "clsx";
@@ -67,8 +68,8 @@ const TopbarLayout: FC<TopbarLayoutProps> = memo(() => {
       <div className="start-ctnr">
         {show_toggle_btn && (
           <div className="topbar-item">
-            <IconButton color="primary" onClick={HandleToggleSidebar}>
-              <MenuRoundedIcon />
+            <IconButton color="primary" onClick={HandleToggleSidebar} title={show_sidebar ? "Hide Sidebar" : "Show Sidebar"}>
+              {show_sidebar ? <MenuOpenIcon /> : <MenuRoundedIcon />}
             </IconButton>
           </div>
         )}

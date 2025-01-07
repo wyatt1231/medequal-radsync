@@ -6,6 +6,7 @@ const RtfComponentUi = styled(`div`)`
   margin: 0 auto;
   border: 1px solid #ccc;
   border-radius: 3px !important;
+  background-color: #fff !important;
   /* border: 1px solid black !important; */
 
   .ql-editor {

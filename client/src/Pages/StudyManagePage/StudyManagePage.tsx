@@ -348,7 +348,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={6}>
                 {/* <Typography component={"div"} className="form-separator">
                   Study Report
                 </Typography> */}
@@ -401,7 +401,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                 </div>
               </Grid>
 
-              <Grid item xs={12} md={8}>
+              <Grid item xs={12} md={6}>
                 {!!study?.study_link && (
                   <div style={{ height: is_full_screen_study ? `90.3vh` : `800px`, position: `relative`, borderRadius: `3px`, background: `black` }}>
                     <iframe
