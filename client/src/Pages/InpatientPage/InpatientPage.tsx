@@ -42,9 +42,19 @@ const columns: GridColDef<InpatientDto>[] = [
     headerName: "Patient Name",
     editable: false,
     flex: 2,
-    // renderCell: ({ row }) => {
-    //   return row.pat;
-    // },
+  },
+
+  {
+    field: "patno",
+    headerName: "Patient Number",
+    editable: false,
+    flex: 1,
+  },
+  {
+    field: "hospitalno",
+    headerName: "Hospital Number",
+    editable: false,
+    flex: 1,
   },
   {
     field: "admdiagnosis",
@@ -106,9 +116,7 @@ const InpatientPage: FC<InpatientPageProps> = memo(() => {
 
   const [is_loading_table, set_is_loading_table] = useState(false);
 
-  const { inpatients } = useSelector(
-    (store: RootStore) => store.InpatientReducer
-  );
+  const { inpatients } = useSelector((store: RootStore) => store.InpatientReducer);
 
   const setIsLoadingTable = useCallback((is_loading: boolean) => {
     set_is_loading_table(is_loading);

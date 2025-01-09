@@ -45,6 +45,18 @@ const columns: GridColDef<StudyDto>[] = [
     flex: 2,
   },
   {
+    field: "patrefno",
+    headerName: "Patient #",
+    editable: false,
+    flex: 1,
+  },
+  {
+    field: "hospitalno",
+    headerName: "Hospital #",
+    editable: false,
+    flex: 1,
+  },
+  {
     field: "urgency",
     headerName: "Urgency",
     editable: false,
