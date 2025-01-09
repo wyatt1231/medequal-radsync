@@ -1,12 +1,13 @@
+import { Paper } from "@mui/material";
 import styled from "styled-components";
 
-const RtfComponentUi = styled(`div`)`
+const RtfComponentUi = styled(Paper)`
   /* Customize the container of the editor */
   width: 100%;
   margin: 0 auto;
-  border: 1px solid #ccc;
-  border-radius: 3px !important;
-  background-color: #fff !important;
+  /* border: 1px solid #ccc; */
+  /* border-radius: 3px !important; */
+  /* background-color: #fff !important; */
   /* border: 1px solid black !important; */
 
   .ql-editor {

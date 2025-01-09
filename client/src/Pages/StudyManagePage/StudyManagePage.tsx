@@ -3,6 +3,8 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 // import PlaylistAddCircleIcon from "@mui/icons-material/PlaylistAddCheck";
 import PreviewIcon from "@mui/icons-material/Preview";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { Box, Button, Chip, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
 import { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,6 +40,8 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const [font_size, set_font_size] = useState(`11pt`);
 
   const [is_full_screen_study, set_is_full_screen_study] = useState(false);
+  const [is_show_study, set_is_show_study] = useState(true);
+  const [is_show_viewer, set_is_show_viewer] = useState(true);
   // const [is_full_screen_imaging, set_is_full_screen_imaging] = useState(false);
   const [rtf_impression, set_rtf_impression] = useState<string>("");
   const [loading_study, set_loading_study] = useState(false);
@@ -318,20 +322,28 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       alignItems={`center`}
                       alignContent={`center`}
                     >
-                      {/* // <IconButton title="View Result Templates" onClick={onClickOpenTemplate} size={"small"}>
-                        //   <PlaylistAddCircleIcon fontSize="small" color="primary" />
-                        // </IconButton> */}
-                      <Button variant="outlined" color="primary" onClick={onClickOpenTemplate} size={"small"}>
-                        View Templates
+                      <Button
+                        variant="text"
+                        startIcon={is_show_study ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        color="primary"
+                        size={"small"}
+                        onClick={() => {
+                          set_is_show_study(!is_show_study);
+                        }}
+                      >
+                        {is_show_study ? "Hide" : "Show"} Study Report
                       </Button>
-
-                      <IconButton title={"Open Imaging In New Window"} onClick={onClickOpenLinkNewWindow} size={"small"}>
-                        <OpenInNewIcon fontSize="small" color="primary" />
-                      </IconButton>
-
-                      <IconButton title={"Preview Imaging"} onClick={onClickFullScreenImaging} size={"small"}>
-                        <PreviewIcon fontSize="small" color="primary" />
-                      </IconButton>
+                      <Button
+                        variant="text"
+                        startIcon={is_show_viewer ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        color="primary"
+                        size={"small"}
+                        onClick={() => {
+                          set_is_show_viewer(!is_show_viewer);
+                        }}
+                      >
+                        {is_show_viewer ? "Hide" : "Show"} Viewer
+                      </Button>
                       <IconButton
                         title={is_full_screen_study ? "Exit Study Report & Imaging Full Screen" : "Enter Study Report & Imaging Full Screen"}
                         onClick={onClickFullScreenStudy}
@@ -348,85 +360,135 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
-                {/* <Typography component={"div"} className="form-separator">
-                  Study Report
-                </Typography> */}
+              {is_show_study && (
+                <Grid item xs={12} md={is_show_viewer ? 6 : 12}>
+                  <div>
+                    <RtfComponent
+                      value={rtf_impression}
+                      onChange={onEditorChange}
+                      read_only={!["D"].includes(study_impression?.resulttag)}
+                      height={is_full_screen_study ? `82vh` : `700px`}
+                      font_size={font_size}
+                      set_font_size={set_font_size}
+                      actions={[
+                        {
+                          label: `View Templates`,
+                          onClick: onClickOpenTemplate,
+                        },
+                      ]}
+                    />
 
-                <div>
-                  <RtfComponent
-                    value={rtf_impression}
-                    onChange={onEditorChange}
-                    read_only={!["D"].includes(study_impression?.resulttag)}
-                    height={is_full_screen_study ? `82vh` : `700px`}
-                    font_size={font_size}
-                    set_font_size={set_font_size}
-                  />
-
-                  <Box marginTop={`1em`} display={`grid`} gridAutoFlow={`column`} gap={`1em`} justifyContent={`end`} justifyItems={`end`}>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      disabled={!["D"].includes(study_impression?.resulttag)}
-                      onClick={async () => {
-                        await onSubmitStudy(`D`);
-                      }}
-                    >
-                      Save as Draft
-                    </Button>
-
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      disabled={!["D"].includes(study_impression?.resulttag)}
-                      onClick={async () => {
-                        await onSubmitStudy(`F`);
-                      }}
-                    >
-                      Save as Final
-                    </Button>
-
-                    {["F"].includes(study_impression?.resulttag) && (
+                    <Box marginTop={`1em`} display={`grid`} gridAutoFlow={`column`} gap={`1em`} justifyContent={`end`} justifyItems={`end`}>
                       <Button
-                        variant="contained"
-                        color="warning"
+                        variant="outlined"
+                        color="secondary"
+                        disabled={!["D"].includes(study_impression?.resulttag)}
                         onClick={async () => {
-                          await onUnverifyStudy();
+                          await onSubmitStudy(`D`);
                         }}
                       >
-                        Unverify
+                        Save as Draft
                       </Button>
-                    )}
-                  </Box>
-                </div>
-              </Grid>
 
-              <Grid item xs={12} md={6}>
-                {!!study?.study_link && (
-                  <div style={{ height: is_full_screen_study ? `90.3vh` : `800px`, position: `relative`, borderRadius: `3px`, background: `black` }}>
-                    <iframe
-                      ref={iframeRef}
-                      src={study.study_link}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        border: "none",
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                      }}
-                      title="Embedded Content"
-                      // allowFullScreen={true}
-                      scrolling="no"
-                      frameBorder={0}
-                    >
-                      {/* allow="autoplay; encrypted-media; fullscreen" */}
-                      Your browser doesnot support iframes
-                      <a href={study.study_link}>click here to view the image directly.</a>
-                    </iframe>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        disabled={!["D"].includes(study_impression?.resulttag)}
+                        onClick={async () => {
+                          await onSubmitStudy(`F`);
+                        }}
+                      >
+                        Save as Final
+                      </Button>
+
+                      {["F"].includes(study_impression?.resulttag) && (
+                        <Button
+                          variant="contained"
+                          color="warning"
+                          onClick={async () => {
+                            await onUnverifyStudy();
+                          }}
+                        >
+                          Unverify
+                        </Button>
+                      )}
+                    </Box>
                   </div>
-                )}
-              </Grid>
+                </Grid>
+              )}
+
+              {is_show_viewer && (
+                <Grid item xs={12} md={is_show_study ? 6 : 12}>
+                  {!!study?.study_link && (
+                    <Paper
+                      style={{
+                        display: `grid`,
+                        gridAutoRows: `46px 1fr`,
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: `46px`,
+                          gridAutoRows: `46px 1fr`,
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: `100%`,
+                            display: `grid`,
+                            gridAutoFlow: `column`,
+                            gridGap: `.5em`,
+                            justifyContent: `end`,
+                            justifyItems: `end`,
+                            alignItems: `center`,
+                            alignContent: `center`,
+                            backgroundColor: `#f1f1f1`,
+                          }}
+                        >
+                          <IconButton title={"Open Imaging In New Window"} onClick={onClickOpenLinkNewWindow} size={"small"}>
+                            <OpenInNewIcon fontSize="small" color="primary" />
+                          </IconButton>
+
+                          <IconButton title={"Preview Imaging"} onClick={onClickFullScreenImaging} size={"small"}>
+                            <PreviewIcon fontSize="small" color="primary" />
+                          </IconButton>
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          height: is_full_screen_study ? `calc(90.3vh - 46px)` : `calc(800px - 46px)`,
+                          position: `relative`,
+                          borderRadius: `3px`,
+                          background: `black`,
+                          display: `grid`,
+                          gridAutoRows: `46px 1fr`,
+                        }}
+                      >
+                        <iframe
+                          ref={iframeRef}
+                          src={study.study_link}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            border: "none",
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                          }}
+                          title="Embedded Content"
+                          // allowFullScreen={true}
+                          scrolling="no"
+                          frameBorder={0}
+                        >
+                          {/* allow="autoplay; encrypted-media; fullscreen" */}
+                          Your browser doesnot support iframes
+                          <a href={study.study_link}>click here to view the image directly.</a>
+                        </iframe>
+                      </div>
+                    </Paper>
+                  )}
+                </Grid>
+              )}
             </Grid>
           </Paper>
         </Grid>

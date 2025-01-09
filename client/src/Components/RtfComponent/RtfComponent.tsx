@@ -1,6 +1,6 @@
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
-import { Box, IconButton, MenuItem, TextField } from "@mui/material";
+import { Box, Button, IconButton, MenuItem, TextField } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import ReactQuill, { Quill } from "react-quill"; // Import ReactQuill component
 import "react-quill/dist/quill.snow.css"; // Import Quill's styles
@@ -37,6 +37,11 @@ setUpQuill();
 
 export const formats = ["bold", "italic", "underline", "size"];
 
+export interface RtfActionButtons {
+  label: string;
+  onClick: () => Promise<void>;
+}
+
 // Type for the value of the editor
 type RtfComponentProps = {
   value: string;
@@ -46,6 +51,7 @@ type RtfComponentProps = {
   onChange: (value: string) => void;
   font_size?: string;
   set_font_size?: React.Dispatch<React.SetStateAction<string>>;
+  actions?: RtfActionButtons[];
 };
 
 const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only, height, font_size, set_font_size, ...props }) => {
@@ -186,9 +192,18 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
             </TextField>
           </span>
           <span className="ql-formats">
-            <IconButton title={is_full_screen ? "Exit Full Screen" : "Enter Full Screen"} onClick={onClickFullScreen} size={"small"}>
-              {is_full_screen ? <FullscreenExitIcon fontSize="small" color="primary" /> : <FullscreenIcon fontSize="small" color="primary" />}
-            </IconButton>
+            <Box display={`grid`} alignItems={`center`} alignContent={`center`} gridAutoFlow={`column`}>
+              <IconButton title={is_full_screen ? "Exit Full Screen" : "Enter Full Screen"} onClick={onClickFullScreen} size={"small"}>
+                {is_full_screen ? <FullscreenExitIcon fontSize="small" color="primary" /> : <FullscreenIcon fontSize="small" color="primary" />}
+              </IconButton>
+
+              {props.actions.map((p) => (
+                // <Button fullWidth variant="outlined" color="primary" onClick={p.onClick} size={"small"}>
+                <Button style={{ minWidth: 115, height: 30 }} fullWidth variant="text" color="primary" onClick={p.onClick} size={"small"}>
+                  {p.label}
+                </Button>
+              ))}
+            </Box>
           </span>
         </Box>
       </div>

@@ -175,6 +175,10 @@ tr td:last-child {
   font-weight: 500 !important;
 }
 
+.ql-toolbar.ql-snow .ql-formats {
+  margin-right: 0 !important;
+}
+
 /* .ql-picker-label[data-value="8px"]::before { content: '8px' !important; }
 .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="8px"]::before {
   content: '8px';
