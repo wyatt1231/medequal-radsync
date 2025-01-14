@@ -30,7 +30,12 @@
             public string sectioncode { get; set; }
             public string dateperformed { get; set; }
             public string proccode { get; set; }
+            public string age { get; set; }
+            public string birthdate { get; set; }
+            public string resultdoc { get; set; }
             public string study_link { get;set;}
+            public string dateencoded { get; set; }
+            //
             public string user { get;set;}
             public string font_size { get;set;}
 

@@ -24,6 +24,10 @@ export interface StudyDto {
   sectioncode?: string;
   dateperformed?: string;
   proccode?: string;
+  age?: string;
+  birthdate?: string;
+  dateencoded?: string;
+  //
   study_link?: string;
   font_size?: string;
 }

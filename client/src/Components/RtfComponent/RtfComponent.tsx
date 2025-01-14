@@ -48,7 +48,7 @@ type RtfComponentProps = {
   label?: string;
   read_only?: boolean;
   height?: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   font_size?: string;
   set_font_size?: React.Dispatch<React.SetStateAction<string>>;
   actions?: RtfActionButtons[];
@@ -87,7 +87,7 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
 
   const onSetFontSize = (value) => {
     const font_size = value;
-    set_font_size(font_size);
+    !!set_font_size && set_font_size(font_size);
     if (ref_editor.current) {
       const quill = ref_editor.current.getEditor();
       quill.formatText(0, quill.getLength(), "size", font_size);
@@ -96,7 +96,7 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
 
   // Handle change in the Quill editor content
   const handleChange = (content: string) => {
-    onChange(content);
+    onChange && onChange(content);
   };
 
   // Optional: You can define Quill configurations here
@@ -197,9 +197,16 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
                 {is_full_screen ? <FullscreenExitIcon fontSize="small" color="primary" /> : <FullscreenIcon fontSize="small" color="primary" />}
               </IconButton>
 
-              {props.actions.map((p) => (
-                // <Button fullWidth variant="outlined" color="primary" onClick={p.onClick} size={"small"}>
-                <Button style={{ minWidth: 115, height: 30 }} fullWidth variant="text" color="primary" onClick={p.onClick} size={"small"}>
+              {props.actions?.map((p, i) => (
+                <Button
+                  key={i}
+                  style={{ height: 30, width: `auto` }}
+                  fullWidth={true}
+                  variant="text"
+                  color="primary"
+                  onClick={p.onClick}
+                  size={"small"}
+                >
                   {p.label}
                 </Button>
               ))}

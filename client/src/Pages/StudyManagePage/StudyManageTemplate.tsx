@@ -3,7 +3,7 @@ import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import SwipeDownRoundedIcon from "@mui/icons-material/SwipeRounded";
 import { Box, Button, IconButton, useTheme } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { Dispatch, FC, memo, SetStateAction, useCallback, useEffect, useState } from "react";
+import { Dispatch, FC, memo, SetStateAction } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import PageActions from "../../Contexts/Actions/PageActions";
 import StudyActions from "../../Contexts/Actions/StudyActions";
@@ -22,26 +22,19 @@ interface StudyManageTemplateProps {
 const StudyManageTemplate: FC<StudyManageTemplateProps> = memo(({ set_font_size, set_rtf_impression, onSubmitTemplate }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
-  const { study_templates } = useSelector((store: RootStore) => store.StudyReducer);
 
-  const [is_loading_table, set_is_loading_table] = useState(false);
-
-  const { studys, study_impression } = useSelector((store: RootStore) => store.StudyReducer);
-
-  const setIsLoadingTable = useCallback((is_loading: boolean) => {
-    set_is_loading_table(is_loading);
-  }, []);
+  const { study_impression, study_templates } = useSelector((store: RootStore) => store.StudyReducer);
 
   const study_template_columns: GridColDef<StudyTemplateDto>[] = [
     {
       field: "templatekey",
-      headerName: "Title",
+      headerName: "Template Name",
       editable: false,
       width: 200,
     },
     {
       field: "templatedeschtml",
-      headerName: "Template",
+      headerName: "Impression",
       editable: false,
       flex: 1,
       renderCell: ({ row }) => {
@@ -145,20 +138,6 @@ const StudyManageTemplate: FC<StudyManageTemplateProps> = memo(({ set_font_size,
     },
   ];
 
-  useEffect(() => {
-    dispatch(StudyActions.SetStudys(setIsLoadingTable));
-  }, [dispatch, setIsLoadingTable]);
-
-  useEffect(() => {
-    dispatch(
-      PageActions.SetPageLinks([
-        {
-          label: "Studies",
-          to: "/study",
-        },
-      ])
-    );
-  }, [dispatch]);
   return (
     <>
       <Box height={`100%`}>

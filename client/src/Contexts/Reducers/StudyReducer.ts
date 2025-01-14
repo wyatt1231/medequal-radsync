@@ -36,6 +36,13 @@ const StudyReducer = (state: StudyReducerModel = defaultState, action: StudyRedu
       };
     }
 
+    case "set_study_prevs": {
+      return {
+        ...state,
+        study_prevs: action.study_prevs,
+      };
+    }
+
     default:
       return state;
   }

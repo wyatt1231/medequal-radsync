@@ -38,79 +38,76 @@ const StackSideoutComponent: React.FC<StackSideoutComponentProps> = (props) => {
 
   return (
     <>
-      {/* <TransitionGroup> */}
       {page_sideouts.map((sideout, index) => {
         return (
-          <>
-            <StackSideoutComponentUi
-              key={sideout.id}
-              open={true}
-              onClose={toggleDrawer(false)}
-              anchor={`right`}
-              variant="temporary"
-              SlideProps={{
-                appear: true,
-                exit: true,
-                enter: true,
-                mountOnEnter: true,
-                unmountOnExit: true,
-                in: true,
-                timeout: 500,
-              }}
+          <StackSideoutComponentUi
+            key={index}
+            open={true}
+            onClose={toggleDrawer(false)}
+            anchor={`right`}
+            variant="temporary"
+            SlideProps={{
+              appear: true,
+              exit: true,
+              enter: true,
+              mountOnEnter: true,
+              unmountOnExit: true,
+              in: true,
+              timeout: 500,
+            }}
+          >
+            <Box
+              width={`calc(${sideout.width} - ${index * 30}px)`}
+              display={`grid`}
+              gridAutoRows={`60px ${!!sideout.ActionComponent ? "60px" : "0"} 1fr`}
+              alignItems={`center`}
+              alignContent={`center`}
             >
-              <Box
-                width={`calc(${sideout.width} - ${index * 30}px)`}
-                display={`grid`}
-                gridAutoRows={`60px ${!!sideout.ActionComponent ? "60px" : "0"} 1fr`}
-                alignItems={`center`}
-                alignContent={`center`}
-              >
-                <Box padding={theme.spacing(1)} bgcolor={`#f5f5f5`} height={`60px`}>
-                  <Box
-                    height={`100%`}
-                    display={`grid`}
-                    gridAutoFlow={`column`}
-                    gridAutoColumns={`1fr auto`}
-                    alignItems={`center`}
-                    alignContent={`center`}
-                  >
-                    <Typography variant="subtitle1" fontWeight={500}>
-                      {sideout.title}
-                    </Typography>
-                    <Box display={`grid`} gridAutoFlow={`column`} gap={theme.spacing(1)}>
-                      <IconButton title="Close" color="error" onClick={toggleDrawer(false)}>
-                        <DisabledByDefaultIcon fontSize="small" color="error" />
-                      </IconButton>
-
-                      {/* <Button variant="contained" color="error">
-                        Close
-                      </Button> */}
-                    </Box>
-                  </Box>
-
-                  <Box></Box>
-                </Box>
+              <Box padding={theme.spacing(1)} bgcolor={`#f5f5f5`} height={`60px`}>
                 <Box
-                  padding={theme.spacing(1)}
-                  height={!!sideout.ActionComponent ? `60px` : `0`}
-                  maxHeight={!!sideout.ActionComponent ? `60px` : `0`}
-                  borderBottom={!!sideout.ActionComponent ? `2px solid rgba(0,0,0,0.1)` : `none`}
+                  height={`100%`}
                   display={`grid`}
                   gridAutoFlow={`column`}
-                  gap={theme.spacing(1)}
-                  justifyContent={`end`}
-                  justifyItems={`end`}
+                  gridAutoColumns={`1fr auto`}
                   alignItems={`center`}
                   alignContent={`center`}
                 >
-                  {sideout.ActionComponent}
+                  <Typography variant="subtitle1" fontWeight={500}>
+                    {sideout.title}
+                  </Typography>
+                  <Box display={`grid`} gridAutoFlow={`column`} gap={theme.spacing(1)}>
+                    <IconButton title="Close" color="error" onClick={toggleDrawer(false)}>
+                      <DisabledByDefaultIcon fontSize="small" color="error" />
+                    </IconButton>
+
+                    {/* <Button variant="contained" color="error">
+                        Close
+                      </Button> */}
+                  </Box>
                 </Box>
-                <Box padding={theme.spacing(1)} height={`calc(100vh - ${!!sideout.ActionComponent ? "120px" : "60px"})`} overflow={`auto`}>
-                  {sideout.BodyComponent}
-                </Box>
+
+                <Box></Box>
               </Box>
-            </StackSideoutComponentUi>
-          </>
+              <Box
+                padding={theme.spacing(1)}
+                height={!!sideout.ActionComponent ? `60px` : `0`}
+                maxHeight={!!sideout.ActionComponent ? `60px` : `0`}
+                borderBottom={!!sideout.ActionComponent ? `2px solid rgba(0,0,0,0.1)` : `none`}
+                display={`grid`}
+                gridAutoFlow={`column`}
+                gap={theme.spacing(1)}
+                justifyContent={`end`}
+                justifyItems={`end`}
+                alignItems={`center`}
+                alignContent={`center`}
+              >
+                {sideout.ActionComponent}
+              </Box>
+              <Box padding={theme.spacing(1)} height={`calc(100vh - ${!!sideout.ActionComponent ? "120px" : "60px"})`} overflow={`auto`}>
+                {sideout.BodyComponent}
+              </Box>
+            </Box>
+          </StackSideoutComponentUi>
         );
       })}
       {/* </TransitionGroup> */}

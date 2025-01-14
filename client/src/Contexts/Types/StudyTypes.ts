@@ -21,6 +21,10 @@ export type StudyReducerTypes =
   | {
       type: "set_study_templates";
       study_templates?: StudyTemplateDto[];
+    }
+  | {
+      type: "set_study_prevs";
+      study_prevs?: StudyDto[];
     };
 
 export interface StudyReducerModel {
@@ -29,4 +33,5 @@ export interface StudyReducerModel {
   study_patient?: InpatientDto;
   study_impression?: StudyDto;
   study_templates?: StudyTemplateDto[];
+  study_prevs?: StudyDto[];
 }

@@ -1,5 +1,5 @@
 import { Dispatch } from "react";
-import { StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
+import { StudyDto, StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
 import StudyApi from "../Apis/StudyApi";
 import { PageReducerTypes } from "../Types/PageTypes";
 import { StudyReducerTypes } from "../Types/StudyTypes";
@@ -91,12 +91,22 @@ const SetStudyTemplates =
     }
   };
 
+const SetStudyPrevs = (study_prevs?: StudyDto[]) => async (dispatch: Dispatch<StudyReducerTypes | PageReducerTypes>) => {
+  dispatch({
+    type: "set_study_prevs",
+    study_prevs: study_prevs,
+  });
+
+  console.log(`study_prevs`, study_prevs);
+};
+
 const StudyActions = {
   SetStudys,
   SetStudy,
   SetStudyPatient,
   SetStudyImpression,
   SetStudyTemplates,
+  SetStudyPrevs,
 };
 
 export default StudyActions;

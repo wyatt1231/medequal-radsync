@@ -21,6 +21,7 @@ import StringUtil from "../../Utils/StringUtil";
 import StudyManagePagePatientInfo from "./StudyManagePagePatientInfo";
 import StudyManageTemplate from "./StudyManageTemplate";
 import StudyManageTemplateForm from "./StudyManageTemplateForm";
+import StudyPreviousSideout from "./StudyPreviousSideout";
 interface StudyManagePageProps {}
 
 interface StudyManagePageParamsProps {
@@ -35,7 +36,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const { radresultno } = params;
   const dispatch = useDispatch();
 
-  const { study, study_impression } = useSelector((store: RootStore) => store.StudyReducer);
+  const { study, study_impression, study_patient } = useSelector((store: RootStore) => store.StudyReducer);
 
   const [font_size, set_font_size] = useState(`11pt`);
 
@@ -118,6 +119,29 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
               onSubmitTemplate={onSubmitTemplate}
             ></StudyManageTemplate>
           ),
+        })
+      );
+    } catch (error) {
+      dispatch(PageActions.SetHttpErrorPrompt(error));
+    }
+  };
+
+  const onClickOpenStudyPrevious = async () => {
+    try {
+      dispatch(PageActions.SetLoading(true));
+      const prevs = await StudyApi.GetStudyPrevs({
+        hospitalno: study_patient.hospitalno,
+        radresultno: study_impression.radresultno,
+      });
+
+      dispatch(StudyActions.SetStudyPrevs(prevs));
+      dispatch(PageActions.SetLoading(false));
+
+      dispatch(
+        PageActions.PushPageSideout({
+          title: `Previous Results - ${study_patient.admlastname} ${study_patient.admfirstname} | Current Procedure: ${study.proccode} | ${study.procdesc} |  ${study.urgency} `,
+          width: `85vw`,
+          BodyComponent: <StudyPreviousSideout></StudyPreviousSideout>,
         })
       );
     } catch (error) {
@@ -374,6 +398,10 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                         {
                           label: `View Templates`,
                           onClick: onClickOpenTemplate,
+                        },
+                        {
+                          label: `Previous`,
+                          onClick: onClickOpenStudyPrevious,
                         },
                       ]}
                     />

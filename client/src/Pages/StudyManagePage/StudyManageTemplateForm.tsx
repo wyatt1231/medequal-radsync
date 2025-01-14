@@ -73,10 +73,23 @@ const StudyManageTemplateForm: FC<StudyManageTemplateFormProps> = memo((props) =
           >
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <TextFieldHookForm name="templatekey" label="Title" variant="outlined" fullWidth required InputLabelProps={{ shrink: true }} />
+                <TextFieldHookForm
+                  name="templatekey"
+                  label="Template Name"
+                  variant="outlined"
+                  fullWidth
+                  required
+                  InputLabelProps={{ shrink: true }}
+                />
               </Grid>
               <Grid item xs={12}>
-                <RtfHookForm name="templatedeschtml" label="Template" required height="500px" font_size={props.study_template?.font_size ?? `11pt`} />
+                <RtfHookForm
+                  name="templatedeschtml"
+                  label="Impression"
+                  required
+                  height="500px"
+                  font_size={props.study_template?.font_size ?? `11pt`}
+                />
               </Grid>
             </Grid>
           </div>

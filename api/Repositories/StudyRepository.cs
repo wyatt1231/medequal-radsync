@@ -33,6 +33,7 @@ namespace radsync_server.Repositories
         Task<StudyDto> UpdateStudyImpression(StudyDto study, UserDto user);
         Task<StudyTemplateDto> UpdateStudyTemplate(StudyTemplateDto study, UserDto user);
         Task<bool> UnverifyStudyImpression(string radresultno, UserDto user);
+        Task<List<StudyDto>> GetStudyPrevs(UserDto user, StudyDto study);
     }
 
     public class StudyRepository : IStudyRepository
@@ -342,6 +343,41 @@ namespace radsync_server.Repositories
 
             return success > 0;
         }
+
+
+        #region PREVIOUS STUDY
+
+        public async Task<List<StudyDto>> GetStudyPrevs(UserDto user, StudyDto study)
+        {
+            var con = await this.mysql_db_context.GetConnectionAsync();
+            var transaction = await this.mysql_db_context.BeginTransactionAsync();
+
+            string sql_query = $@"select radresultno,modality, date_format(rd.dateencoded,'%m/%d/%Y') as studydate,procdesc  
+                                 ,'' age  
+                                 ,resultdesc  
+                                 ,birthdate,rd.hospitalno,rd.dateencoded  
+                                 ,COALESCE((select group_concat(GetDoctorsName(doccode) separator '; ') raddoc from radresultdoc rx where rx.radresultno=rd.radresultno),'') resultdoc  
+                                 from radresult rd  
+                                 left join prochdr ph on ph.proccode=rd.refcode  
+                                 left join patmaster pat on pat.hospitalno=rd.hospitalno  
+                                 where resulttag='F' and rd.hospitalno=@hospitalno and rd.radresultno not in (@radresultno)
+                                 order by rd.dateencoded
+                                ";
+            //study.radresultno
+
+            List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, study, transaction: transaction)).ToList();
+
+            foreach (var item in data)
+            {
+                item.font_size = StringUtil.GetRtfFontSize(item.resultdesc ?? "");
+                item.radresulthtml = StringUtil.RtfToHtml(item.resultdesc ?? "");
+            }
+
+
+            return data;
+        }
+
+        #endregion
 
     }
 }

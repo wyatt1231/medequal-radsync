@@ -225,5 +225,28 @@ namespace radsync_server.Controllers
 
         #endregion
 
+        #region STUDY PREVIOUS
+
+
+        [HttpPost("prevs")]
+        public async Task<ActionResult<List<StudyDto>>> GetStudyPrevs([FromBody] StudyDto study)
+        {
+            await mysql_db_context.BeginTransactionAsync();
+
+            UserDto user = new UserDto()
+            {
+                username = User.Identity.Name,
+                user_type = UseClaims.PriorityRole((ClaimsIdentity)User.Identity)
+            };
+
+            var data = await study_repo.GetStudyPrevs(user, study);
+
+            await mysql_db_context.CommitTransactionAsync();
+            return data;
+        }
+
+
+        #endregion
+
     }
 }

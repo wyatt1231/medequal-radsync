@@ -84,6 +84,17 @@ const DeleteStudyTemplate = async (radresultno: string): Promise<StudyDto> => {
 
 //#endregion
 
+//#endregion STUDY PREVIOUS
+
+const GetStudyPrevs = async (payload: StudyDto): Promise<StudyDto[]> => {
+  const response = await Axios.post(SERVER_URL + BASE_URL + `/prevs`, payload, {
+    headers: FetchJsonHeader,
+  });
+  return response.data;
+};
+
+//#endregion
+
 const StudyApi = {
   GetStudies,
   GetStudy,
@@ -95,6 +106,7 @@ const StudyApi = {
   AddStudyTemplate,
   UpdateStudyTemplate,
   DeleteStudyTemplate,
+  GetStudyPrevs,
 };
 
 export default StudyApi;
