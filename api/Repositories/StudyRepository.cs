@@ -190,6 +190,10 @@ namespace radsync_server.Repositories
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
+            if(!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
+
+            //{ (UserConfig.IsDoctor(user.user_type) ? $"r.tempdoccode = @doccode" : "r.encodedby=@doccode")}
+
             if (!new List<string> { "D", "F" }.Contains(study.resulttag.ToUpper()))
             {
                 throw new Exception("Only study tags 'Draft' or 'Final' are accepted!");
@@ -238,6 +242,10 @@ namespace radsync_server.Repositories
                 await con.ExecuteAsync(
                                $@"update trandtls  set done = 'Y' where resultno = @radresultno and csno = @csno;",
                                new { study_result_entity.radresultno, study_result_entity.csno }, transaction: transaction);
+
+                await con.ExecuteAsync(
+                              $@"insert  into radresultdoc  set radresultno = @radresultno, doccode  = @doccode;",
+                              new { study_result_entity.radresultno, doccode = user.username }, transaction: transaction);
             }
 
             return study;
@@ -248,6 +256,8 @@ namespace radsync_server.Repositories
         {
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
+
+            if (!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
 
             int is_allow_verify = await con.QuerySingleAsync<int>(
                           $@"SELECT IF(resulttag IN ('F'), 1, 0)   FROM `radresult` WHERE radresultno = @radresultno",
