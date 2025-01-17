@@ -194,9 +194,9 @@ namespace radsync_server.Repositories
 
             //{ (UserConfig.IsDoctor(user.user_type) ? $"r.tempdoccode = @doccode" : "r.encodedby=@doccode")}
 
-            if (!new List<string> { "D", "F" }.Contains(study.resulttag.ToUpper()))
+            if (!new List<string> {  "D", "F" }.Contains(study.resulttag.ToUpper()))
             {
-                throw new Exception("Only study tags 'Draft' or 'Final' are accepted!");
+                throw new Exception("Only study tags  'Draft' or 'Final' are accepted!");
             }
 
             bool is_save_as_draft = study.resulttag.ToUpper() == "D";
@@ -206,10 +206,10 @@ namespace radsync_server.Repositories
                         $@"SELECT  resulttag   FROM `radresult` WHERE radresultno = @radresultno",
                         study, transaction: transaction);
 
-            if (status == "P")
-            {
-                throw new Exception("You are not allowed to update this result because it is already set as PERFORMED");
-            }
+            //if (status == "P")
+            //{
+            //    throw new Exception("You are not allowed to update this result because it is already set as PERFORMED");
+            //}
 
 
             if (is_save_as_draft && new List<string> { "F", "P", "C" }.Contains(status))

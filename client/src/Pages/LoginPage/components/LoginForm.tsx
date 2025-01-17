@@ -104,7 +104,8 @@ const LoginForm: FC<LoginFormProps> = memo(() => {
                       set_login_error("");
                     }}
                   >
-                    The username and/or password that you have entered is incorrect!
+                    {/* The username and/or password that you have entered is incorrect! */}
+                    {login_error}
                   </Alert>
                 </Grid>
               )}
