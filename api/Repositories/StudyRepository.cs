@@ -190,11 +190,11 @@ namespace radsync_server.Repositories
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
-            if(!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
+            if (!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
 
             //{ (UserConfig.IsDoctor(user.user_type) ? $"r.tempdoccode = @doccode" : "r.encodedby=@doccode")}
 
-            if (!new List<string> {  "D", "F" }.Contains(study.resulttag.ToUpper()))
+            if (!new List<string> { "D", "F" }.Contains(study.resulttag.ToUpper()))
             {
                 throw new Exception("Only study tags  'Draft' or 'Final' are accepted!");
             }
@@ -212,12 +212,12 @@ namespace radsync_server.Repositories
             //}
 
 
-            if (is_save_as_draft && new List<string> { "F", "P", "C" }.Contains(status))
+            if (is_save_as_draft && new List<string> { "F", "C" }.Contains(status))
             {
                 throw new Exception("You are not allowed to save this result as DRAFT");
             }
 
-            if (is_save_as_final && new List<string> { "F", "P", "C" }.Contains(status))
+            if (is_save_as_final && new List<string> { "F", "C" }.Contains(status))
             {
                 throw new Exception("You are not allowed to save this result as FINAL");
             }
