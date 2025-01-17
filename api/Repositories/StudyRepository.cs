@@ -59,25 +59,36 @@ namespace radsync_server.Repositories
                                         (SELECT 
                                          GetRadResultTag(rd.resulttag) resulttag,rd.hospitalno 
                                          ,rd.patrefno,CONCAT(pat.lastname,', ',pat.firstname,' ',pat.suffix,' ',pat.middlename) AS patientname 
-                                         ,DATE(birthdate) AS dob,pat.sex 
+                                         #,DATE(birthdate) AS dob,pat.sex 
                                          ,radresultno radresultno,DATE_FORMAT(rd.dateencoded, '%Y-%m-%dT%H:%i:%s') AS studydate
-                                         ,procdesc,urgency,modality,reqdoccode,
-                                         CONCAT( COALESCE(dm.`lastname`,''),', ', COALESCE(dm.`firstname`,''),' ',COALESCE(dm.`middlename`,''))  referringdoc 
-                                         ,deptname sourcedept 
-                                         ,ph.tag,rd.csno,rd.refcode,filmcontrolno
-                                         ,rd.deptcode,rd.sectioncode
+                                         #,procdesc
+                                         ,urgency
+                                         ,modality
+                                         #,reqdoccode
+                                         ,CONCAT( COALESCE(dm.`lastname`,''),', ', COALESCE(dm.`firstname`,''),' ',COALESCE(dm.`middlename`,''))  referringdoc 
+                                         #,deptname sourcedept 
+                                         #,ph.tag
+                                         #,rd.csno
+                                         #,rd.refcode
+                                         #,filmcontrolno
+                                         #,rd.deptcode
+                                         #,rd.sectioncode
+                                         ,rd.pattype 
                                          FROM radresult rd 
-                                         LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
+                                         #LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
                                          LEFT JOIN `docmaster` dm ON dm.`doccode` = rd.`reqdoccode`
                                          LEFT JOIN inpmaster inp ON inp.patno=rd.patrefno 
                                          LEFT JOIN patmaster pat ON pat.hospitalno=inp.hospitalno 
-                                         LEFT JOIN department d ON d.deptcode=chargedept 
+                                         #LEFT JOIN department d ON d.deptcode=chargedept 
+                                         #left join opmaster o  on o.patno  = rd.patrefno 
+                                         #left join opdiagnosticsum ods on ods.cashpatref  = rd.patrefno 
                                          WHERE
                                          rd.deptcode='0004'
-                                         AND rd.pattype='I'
+                                         #AND rd.pattype='I'
                                          AND rd.resulttag IN ('D', 'P','F','C')
                                         ) 
                                     AS studies 
+                                    LIMIT 200
                                 ";
 
             List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, new { }, transaction: transaction)).ToList();

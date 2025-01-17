@@ -100,6 +100,34 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
     set_is_loading_table(is_loading);
   }, []);
 
+  const [page, setPage] = useState(0);
+  const [size, setPageSize] = useState(100);
+  const [totalCount, setTotalCount] = useState(200);
+  const [sort, setSortModel] = useState([]);
+  const [filter, setFilterModel] = useState({
+    items: [],
+  });
+
+  // Handle sorting change
+  const handleSortModelChange = (newSortModel) => {
+    setSortModel(newSortModel);
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+  };
+
+  // Handle filter model change
+  const handleFilterModelChange = (newFilterModel) => {
+    setFilterModel(newFilterModel);
+  };
+
   useEffect(() => {
     dispatch(StudyActions.SetStudys(setIsLoadingTable));
   }, [dispatch, setIsLoadingTable]);
@@ -111,8 +139,6 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
     }
   }, []);
 
-  console.log(`studys`, studys);
-
   useEffect(() => {
     dispatch(
       PageActions.SetPageLinks([
@@ -123,6 +149,15 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
       ])
     );
   }, [dispatch]);
+
+  useEffect(() => {
+    // fetchData();
+    console.log(`page`, page);
+    console.log(`pageSize`, size);
+    console.log(`sortModel`, sort);
+    console.log(`filterModel`, filter);
+  }, [page, size, sort, filter]);
+
   return (
     <>
       <Paper
@@ -146,6 +181,20 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                     sortModel: [{ field: `studydate`, sort: `desc` }],
                   },
                 }}
+                page={page}
+                pageSize={size}
+                rowCount={totalCount}
+                paginationMode="server"
+                sortingMode="server"
+                filterMode="server"
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                onSortModelChange={handleSortModelChange}
+                onFilterModelChange={handleFilterModelChange}
+                // onKeyDown={handleKeyPress}
+                // onMenuClose={() => {
+                //   alert(`enter colum header`);
+                // }}
               />
             </div>
           </Grid>

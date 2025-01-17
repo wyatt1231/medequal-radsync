@@ -59,8 +59,7 @@ namespace radsync_server.Repositories
                                  WHERE doccode = REPLACE(CONVERT(@username USING utf8),`GetDefaultValue`('DOC_PORTAL_USER_PREFIX'),'') LIMIT 1;"
                               , payload, transaction: tran);
 
-                Debug.Print("AuthAsync doccode");
-                Debug.Print(JsonConvert.SerializeObject(doccode, Formatting.Indented));
+              
 
                 if (!String.IsNullOrEmpty(doccode))
                 {
@@ -72,8 +71,6 @@ namespace radsync_server.Repositories
                         user_type = "DOCTOR"
                     });
 
-                    Debug.Print("AuthAsync not null doctor");
-                    Debug.Print(JsonConvert.SerializeObject(list_user_roles, Formatting.Indented));
                 }
 
                 int admin_count = await con.QuerySingleOrDefaultAsync<int>(
