@@ -48,6 +48,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const [loading_study, set_loading_study] = useState(false);
   const [loading_study_patient, set_loading_study_patient] = useState(false);
   const [loading_study_impression, set_loading_study_impression] = useState(false);
+  const [height, set_height] = useState(800);
 
   const onSubmitTemplate = async (form_type: FormType, payload: StudyTemplateDto) => {
     if (form_type === `ADD`) {
@@ -314,7 +315,13 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
   // console.log(`divRef`, divRef.current);
 
-  console.log(parseInt(divRef.current?.getBoundingClientRect()?.top ?? "0"));
+  useEffect(() => {
+    if (!loading_study && !loading_study_impression) {
+      if (!!divRef.current?.getBoundingClientRect()?.top) {
+        set_height(parseInt(divRef.current?.getBoundingClientRect()?.top ?? "800"));
+      }
+    }
+  }, [loading_study, loading_study_impression]);
 
   return loading_study || loading_study_impression ? (
     <Loader></Loader>
@@ -401,16 +408,14 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                 </Typography>
               </Grid>
 
-              {is_show_study && parseInt(divRef.current?.getBoundingClientRect()?.top ?? "0") > 0 && (
+              {is_show_study && (
                 <Grid item xs={12} md={is_show_viewer ? 6 : 12}>
                   <div>
                     <RtfComponent
                       value={rtf_impression}
                       onChange={onEditorChange}
                       read_only={!["D", "P"].includes(study_impression?.resulttag)}
-                      height={
-                        is_full_screen_study ? `82vh` : `calc(100vh - ${parseInt(divRef.current?.getBoundingClientRect()?.top ?? "0") + 220}px)`
-                      }
+                      height={is_full_screen_study ? `82vh` : `calc(100vh - ${height + 220}px)`}
                       font_size={font_size}
                       set_font_size={set_font_size}
                       actions={[
@@ -464,7 +469,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                 </Grid>
               )}
 
-              {is_show_viewer && parseInt(divRef.current?.getBoundingClientRect()?.top ?? "0") > 0 && (
+              {is_show_viewer && (
                 <Grid item xs={12} md={is_show_study ? 6 : 12}>
                   {!!study?.study_link && (
                     <Paper
@@ -503,9 +508,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       </div>
                       <div
                         style={{
-                          height: is_full_screen_study
-                            ? `calc(90.3vh - 46px)`
-                            : `calc(100vh - ${parseInt(divRef.current?.getBoundingClientRect()?.top ?? "0") + 220}px)`,
+                          height: is_full_screen_study ? `calc(90.3vh - 46px)` : `calc(100vh - ${height + 220}px)`,
                           position: `relative`,
                           borderRadius: `3px`,
                           background: `black`,

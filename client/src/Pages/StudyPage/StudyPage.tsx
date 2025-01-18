@@ -32,7 +32,9 @@ const columns: GridColDef<StudyDto>[] = [
             className="link"
             variant="subtitle2"
           >
-            <NavLink to={`/study/${row.radresultno}`}>{row?.radresultno} </NavLink>
+            <NavLink to={`/study/${row.radresultno}`} target="'_blank'">
+              {row?.radresultno}
+            </NavLink>
           </Typography>
         </div>
       );
@@ -148,8 +150,6 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
       set_position({ top: rect.top, left: rect.left });
     }
   }, []);
-
-  console.log(`studys`, studys);
 
   useEffect(() => {
     dispatch(

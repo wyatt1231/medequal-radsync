@@ -131,8 +131,8 @@ namespace radsync_server.Repositories
             }
             else
             {
-
-                study.study_link = "https://universalviewer.io/uv.html?manifest=https://media.library.ohio.edu/iiif/2/lynnjohnson:728/manifest.json";
+                //study.study_link = "https://universalviewer.io/uv.html?manifest=https://media.library.ohio.edu/iiif/2/lynnjohnson:728/manifest.json";
+                study.study_link = "https://192.168.1.55/ZFP?mode=Proxy#amp;un=zfpopenapi&amp;pw=YRLj8mqXPmkT7fTy44cjzIaoEca9rquhTY%2fkkl%2fOVdCZp4bWSQdw2bcRq7RujyjUrth7SPJP5ftYW3eQNUfd1g%3d%3d&amp;san=250001354";
             }
 
             return study;
