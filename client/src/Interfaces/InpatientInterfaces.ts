@@ -12,13 +12,16 @@ export interface InpatientDto {
   patno?: string;
   hospitalno?: string;
   admprefix?: string;
-  admlastname?: string;
-  admfirstname?: string;
-  admmiddlename?: string;
-  admsuffix?: string;
+  // admlastname?: string;
+  // admfirstname?: string;
+  // admmiddlename?: string;
+  // admsuffix?: string;
+  patientname?: string;
 
   sex?: "M" | "F";
+  address?: string;
   birthdate?: Date;
+  nsroombed?: string;
   age?: string;
   completeaddress?: string;
   phoneno?: string;
@@ -34,14 +37,14 @@ export interface InpatientDto {
   doccode?: string;
   docname?: string;
 
-  roomcode?: string;
-  bedno?: string;
-  nsunit?: string;
-  roomin?: string;
-  roomout?: string;
-  statustag?: string;
-  confinement?: string;
-  finaldx?: string;
+  // roomcode?: string;
+  // bedno?: string;
+  // nsunit?: string;
+  // roomin?: string;
+  // roomout?: string;
+  // statustag?: string;
+  // confinement?: string;
+  // finaldx?: string;
   doc_desc?: string;
   //   transfer_info?: string;
 

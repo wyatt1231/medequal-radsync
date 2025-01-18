@@ -45,8 +45,8 @@ namespace radsync_server.Controllers
             this.study_repo = study_repo;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<StudyDto>>> GetStudys()
+        [HttpPost]
+        public async Task<ActionResult<List<StudyDto>>> GetStudys([FromBody]  StudyFilterDto filter)
         {
             await mysql_db_context.BeginTransactionAsync();
 
@@ -56,7 +56,7 @@ namespace radsync_server.Controllers
                 user_type = UseClaims.PriorityRole((ClaimsIdentity)User.Identity)
             };
 
-            var data = await study_repo.GetStudys(user);
+            var data = await study_repo.GetStudys(user, filter);
 
             await mysql_db_context.CommitTransactionAsync();
             return data;

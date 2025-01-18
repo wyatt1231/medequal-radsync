@@ -28,7 +28,7 @@ namespace radsync_server.Repositories
         Task<StudyDto> GetStudy(string radresultno, UserDto user);
         Task<StudyDto> GetStudyImpression(string radresultno, UserDto user);
         Task<InpatientDtos> GetStudyPatient(string radresultno, UserDto user);
-        Task<List<StudyDto>> GetStudys(UserDto user);
+        Task<List<StudyDto>> GetStudys(UserDto user, StudyFilterDto filter);
         Task<List<StudyTemplateDto>> GetStudyTemplates(UserDto user);
         Task<StudyDto> UpdateStudyImpression(StudyDto study, UserDto user);
         Task<StudyTemplateDto> UpdateStudyTemplate(StudyTemplateDto study, UserDto user);
@@ -50,7 +50,7 @@ namespace radsync_server.Repositories
             this.env = env;
 
         }
-        public async Task<List<StudyDto>> GetStudys(UserDto user)
+        public async Task<List<StudyDto>> GetStudys(UserDto user, StudyFilterDto filter)
         {
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
@@ -59,28 +59,32 @@ namespace radsync_server.Repositories
                                         (SELECT 
                                          GetRadResultTag(rd.resulttag) resulttag,rd.hospitalno 
                                          ,rd.patrefno,CONCAT(pat.lastname,', ',pat.firstname,' ',pat.suffix,' ',pat.middlename) AS patientname 
-                                         ,DATE(birthdate) AS dob,pat.sex 
+                                         ,DATE_FORMAT(birthdate, '%Y-%m-%d') AS dob,pat.sex 
                                          ,radresultno radresultno,DATE_FORMAT(rd.dateencoded, '%Y-%m-%dT%H:%i:%s') AS studydate
-                                         ,procdesc,urgency,modality,reqdoccode,
-                                         CONCAT( COALESCE(dm.`lastname`,''),', ', COALESCE(dm.`firstname`,''),' ',COALESCE(dm.`middlename`,''))  referringdoc 
-                                         ,deptname sourcedept 
-                                         ,ph.tag,rd.csno,rd.refcode,filmcontrolno
-                                         ,rd.deptcode,rd.sectioncode
+                                         ,procdesc,urgency,modality
+                                         ,CONCAT( COALESCE(dm.`lastname`,''),', ', COALESCE(dm.`firstname`,''),' ',COALESCE(dm.`middlename`,''))  referringdoc 
+                                         ,inp.mobileno 
+                                         ,concat(b.barangaydesc,', ', c.citymundesc,', ', p.provincedesc,', ', r.regiondesc,', ' ,inp.admperzipcode) address
+                                         #,DATEDIFF(date(now()), date(rd.dateencoded))  a_order
                                          FROM radresult rd 
                                          LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
-                                         LEFT JOIN `docmaster` dm ON dm.`doccode` = rd.`reqdoccode`
+                                         LEFT JOIN docmaster dm ON dm.doccode = rd.reqdoccode
                                          LEFT JOIN inpmaster inp ON inp.patno=rd.patrefno 
                                          LEFT JOIN patmaster pat ON pat.hospitalno=inp.hospitalno 
                                          LEFT JOIN department d ON d.deptcode=chargedept 
+                                         left join region r on r.regioncode  = inp.admperregion 
+                                         left join province p  on p.provincecode  = inp.admperprovince  
+                                         left join citymunicipality c on c.citymuncode  = inp.admpercitymun  
+                                         left join barangay b  on b.barangaycode  = inp.admperbarangay  
                                          WHERE
                                          rd.deptcode='0004'
-                                         AND rd.pattype='I'
                                          AND rd.resulttag IN ('D', 'P','F','C')
+                                         and (DATEDIFF(date(now()), date(rd.dateencoded))) <= @days_ago
                                         ) 
                                     AS studies 
                                 ";
 
-            List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, new { }, transaction: transaction)).ToList();
+            List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, new { filter.days_ago }, transaction: transaction)).ToList();
             return data;
         }
 
@@ -139,20 +143,99 @@ namespace radsync_server.Repositories
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
+            var pat_type = await con.QuerySingleAsync<string>("select r.pattype from radresult r where r.radresultno =@radresultno", new { radresultno }, transaction);
 
-            InpatientDtos patient = await con.QuerySingleOrDefaultAsync<InpatientDtos>($@"
-                                            SELECT ip.hospitalno, ip.patno, ip.admprefix, ip.admlastname, ip.admfirstname, ip.admmiddlename, ip.admsuffix,
-                                            pm.`sex`, pm.`birthdate`, ((YEAR(`ip`.`admissiondate`) - YEAR(`pm`.`birthdate`)) - (SUBSTR(`ip`.`admissiondate`,6,5) < RIGHT(`pm`.`birthdate`,5))) age,
-                                            rt.`nsunit`, rt.`roomcode` , rt.`bedno`,
-                                            ip.`admissiondate`, ip.`dischargedate`, ip.`admdiagnosis`,cs.`ChiefComplaint` chiefcomplaint
-                                            FROM inpmaster ip
-                                            LEFT JOIN patmaster pm ON  pm.hospitalno = ip.`hospitalno`  
-                                            LEFT JOIN `roomtran` rt ON rt.`patno` = ip.`patno`
-                                            LEFT JOIN clinicalsummary cs ON cs.`PatNo` = ip.`patno`
-                                            JOIN radresult rr ON rr.`patrefno` = ip.`patno`
-                                            WHERE rr.radresultno =@radresultno LIMIT 1                
-                                            "
-                                       , new { radresultno }, transaction: transaction);
+            if (string.IsNullOrEmpty(pat_type)) throw new Exception($"The study with result number {radresultno} does not exist!");
+
+
+            string query = "";
+            if (pat_type == "I")
+            {
+                query = $@"select 
+                          rd.hospitalno 
+                          ,rd.patrefno patno,CONCAT(pat.lastname,', ',pat.firstname,' ',pat.suffix,' ',pat.middlename) AS patientname 
+                          ,DATE_FORMAT(birthdate,'%m/%d/%Y') AS birthdate,pat.sex 
+                          ,((YEAR(inp.admissiondate) - year(pat.birthdate)) - (SUBSTR(inp.admissiondate ,6,5) < RIGHT(pat.birthdate,5))) age
+                          ,IF(TRIM(address)='',completeaddress, CONCAT(TRIM(address),', ',completeaddress)) address
+                          ,radresultno resultno,accessionno,DATE_FORMAT(rd.dateencoded,'%m/%d/%Y %h:%m:%s %p') AS studydate 
+                          ,procdesc,urgency,modality,reqdoccode,COALESCE(dm.doc_name,'') referringdoc 
+                          ,COALESCE(CONCAT(roomcode,'|',bedno,'|',nsunit),'Discharged')  nsroombed
+                          ,deptname sourcedept 
+                          ,unitremarks,transport,pregnant,ph.tag,rd.csno,rd.refcode
+                          ,rd.deptcode,rd.sectioncode
+                          ,DATE_FORMAT(rd.dateperformed,'%m/%d/%Y %h:%m:%s %p') dateperformed
+                          ,DATE_FORMAT(inp.admissiondate,'%m/%d/%Y %h:%m:%s %p') admissiondate
+                          ,DATE_FORMAT(inp.dischargedate,'%m/%d/%Y %h:%m:%s %p') dischargedate
+                          ,mobileno,chiefcomplaint,admdiagnosis
+                          FROM radresult rd 
+                          LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
+                          LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
+                          left join inpmaster inp on inp.patno=rd.patrefno 
+                          LEFT JOIN patmaster pat ON pat.hospitalno=rd.hospitalno 
+                          LEFT JOIN department d ON d.deptcode=chargedept
+                          left join clinicalsummary cs on cs.patno=rd.patrefno
+                          LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay 
+                          LEFT JOIN vw_currentadmittedroom rm ON rm.patno=rd.patrefno 
+                          WHERE rd.radresultno=@radresultno";
+            }
+            else if (pat_type == "O")
+            {
+                query = $@"SELECT rd.hospitalno 
+                            ,rd.patrefno patno,CONCAT(pat.lastname,', ',pat.firstname,' ',pat.suffix,' ',pat.middlename) AS patientname 
+                            ,DATE_FORMAT(birthdate,'%m/%d/%Y') AS birthdate,pat.sex 
+                            ,((YEAR(inp.trandate) - year(birthdate)) - (SUBSTR(inp.trandate ,6,5) < RIGHT(birthdate,5))) age
+                            ,IF(TRIM(address)='',completeaddress, CONCAT(TRIM(address),', ',completeaddress)) address
+                            ,radresultno resultno,accessionno,DATE_FORMAT(rd.dateencoded,'%m/%d/%Y %h:%m:%s %p') AS studydate 
+                            ,procdesc,urgency,modality,reqdoccode,COALESCE(dm.doc_name,'') referringdoc 
+                            ,'OPD|1|OP'  nsroombed
+                            ,deptname sourcedept 
+                            ,unitremarks,transport,pregnant,ph.tag,rd.csno,rd.refcode 
+                            ,rd.deptcode,rd.sectioncode
+                            ,DATE_FORMAT(rd.dateperformed,'%m/%d/%Y %h:%m:%s %p') dateperformed
+                            ,DATE_FORMAT(inp.trandate,'%m/%d/%Y %h:%m:%s %p') admissiondate
+                            ,DATE_FORMAT(inp.expired,'%m/%d/%Y %h:%m:%s %p') dischargedate
+                            ,mobileno,chiefcomplaint,admdiagnosis
+                            FROM radresult rd 
+                            LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
+                            LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
+                            LEFT JOIN opmaster inp ON inp.patno=rd.patrefno 
+                            LEFT JOIN patmaster pat ON pat.hospitalno=rd.hospitalno 
+                            LEFT JOIN department d ON d.deptcode=chargedept
+                            LEFT JOIN clinicalsummary cs ON cs.patno=rd.patrefno
+                            LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay 
+                            WHERE rd.radresultno=@radresultno
+                            ";
+            }
+            else if (pat_type == "C")
+            {
+                query = $@"SELECT rd.hospitalno 
+                            ,rd.patrefno patno,CONCAT(pat.lastname,', ',pat.firstname,' ',pat.suffix,' ',pat.middlename) AS patientname 
+                            ,DATE_FORMAT(birthdate,'%m/%d/%Y') AS birthdate,pat.sex 
+                            ,((YEAR(rd.dateencoded) - year(birthdate)) - (SUBSTR(rd.dateencoded ,6,5) < RIGHT(birthdate,5))) age
+                            ,IF(TRIM(address)='',completeaddress, CONCAT(TRIM(address),', ',completeaddress)) address
+                            ,radresultno resultno,accessionno,DATE_FORMAT(rd.dateencoded,'%m/%d/%Y %h:%m:%s %p') AS studydate 
+                            ,procdesc,urgency,modality,reqdoccode,COALESCE(dm.doc_name,'') referringdoc 
+                            ,'OPD|1|CASH'  nsroombed
+                            ,deptname sourcedept 
+                            ,unitremarks,transport,pregnant,ph.tag,rd.csno,rd.refcode
+                            ,rd.deptcode,rd.sectioncode
+                            ,DATE_FORMAT(rd.dateperformed,'%m/%d/%Y %h:%m:%s %p') dateperformed
+                            ,DATE_FORMAT(rd.dateencoded,'%m/%d/%Y %h:%m:%s %p') admissiondate
+                            ,DATE_FORMAT(rd.dateencoded,'%m/%d/%Y %h:%m:%s %p') dischargedate
+                            ,contactno mobileno,'' chiefcomplaint,'' admdiagnosis
+                            FROM radresult rd 
+                            LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
+                            LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
+                            LEFT JOIN opdiagnosticsum inp ON inp.cashpatref=rd.patrefno 
+                            LEFT JOIN patmaster pat ON pat.hospitalno=rd.hospitalno 
+                            LEFT JOIN department d ON d.deptcode=chargedept
+                            LEFT JOIN clinicalsummary cs ON cs.patno=rd.patrefno
+                            LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay 
+                            WHERE rd.radresultno=@radresultno
+                            ";
+            }
+
+            InpatientDtos patient = await con.QuerySingleOrDefaultAsync<InpatientDtos>(query, new { radresultno }, transaction: transaction);
 
             if (patient == null)
             {

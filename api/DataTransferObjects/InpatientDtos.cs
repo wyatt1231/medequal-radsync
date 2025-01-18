@@ -16,7 +16,7 @@ namespace Api.DataTransferObjects
         public string admfirstname { get; set; }
         public string admmiddlename { get; set; }
         public string admsuffix { get; set; }
-        public SexEnum? sex { get; set; }
+        public string sex { get; set; }
         public DateTime? birthdate { get; set; }
         public int? age { get; set; }
         public string completeaddress { get; set; }
@@ -39,6 +39,8 @@ namespace Api.DataTransferObjects
         public string doccounter { get; set; }
         public string doccode { get; set; }
         public string docname { get; set; }
+        public string address { get; set; }
+        public string nsroombed { get; set; }
 
         public string roomcode { get; set; }
         public string bedno { get; set; }

@@ -56,10 +56,11 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
       <Grid item xs={12} sm={6} md={3} lg={2}>
         <TextField
           label="Patient Name"
-          value={StringUtil.ReplaceNull(
-            (study_patient?.admlastname ?? "") + ", " + (study_patient?.admfirstname ?? "") + " " + (study_patient?.admmiddlename ?? ""),
-            "-"
-          )}
+          value={StringUtil.ReplaceNull(study_patient?.patientname ?? "", "-")}
+          // value={StringUtil.ReplaceNull(
+          //   (study_patient?.admlastname ?? "") + ", " + (study_patient?.admfirstname ?? "") + " " + (study_patient?.admmiddlename ?? ""),
+          //   "-"
+          // )}
           fullWidth
           variant="standard"
           multiline
@@ -73,7 +74,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
       <Grid item xs={12} sm={6} md={3} lg={2}>
         <TextField
           label="Birth Date"
-          value={DateUtils.ReplaceDateUtil(study_patient?.birthdate, "-") + " (" + StringUtil.ReplaceNull(study_patient?.age, "-") + " y/o)"}
+          value={DateUtils.ReplaceDateUtil(study_patient?.birthdate, "-") + " | " + StringUtil.ReplaceNull(study_patient?.age, "-") + " y/o"}
           fullWidth
           variant="standard"
           multiline
@@ -87,10 +88,53 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
       <Grid item xs={12} sm={4} md={3} lg={2}>
         <TextField
           label="NS | Room | Bed"
-          value={`${StringUtil.ReplaceNull(study_patient?.nsunit, "-")} | ${StringUtil.ReplaceNull(
-            study_patient?.roomcode,
-            "-"
-          )} | ${StringUtil.ReplaceNull(study_patient?.bedno, "-")}`}
+          // value={`${StringUtil.ReplaceNull(study_patient?.nsunit, "-")} | ${StringUtil.ReplaceNull(
+          //   study_patient?.roomcode,
+          //   "-"
+          // )} | ${StringUtil.ReplaceNull(study_patient?.bedno, "-")}`}
+          value={study_patient?.nsroombed}
+          fullWidth
+          variant="standard"
+          multiline
+          InputProps={{
+            readOnly: true,
+            disableUnderline: true,
+          }}
+        />
+      </Grid>
+
+      <Grid item xs={12} sm={6} md={3} lg={2}>
+        <TextField
+          label="Sex"
+          value={study_patient?.sex === `F` ? `Female` : study_patient?.sex === `M` ? "Male" : "-"}
+          fullWidth
+          variant="standard"
+          multiline
+          InputProps={{
+            readOnly: true,
+            disableUnderline: true,
+          }}
+        />
+      </Grid>
+
+      <Grid item xs={12} sm={6} md={3} lg={2}>
+        <TextField
+          label="Address"
+          value={StringUtil.ReplaceNull(study_patient?.address, "")}
+          fullWidth
+          variant="standard"
+          multiline
+          InputProps={{
+            readOnly: true,
+            disableUnderline: true,
+          }}
+        />
+      </Grid>
+
+      <Grid item xs={12} sm={6} md={3} lg={2}>
+        <TextField
+          label="Contact No."
+          value={StringUtil.ReplaceNull(study_patient?.mobileno, "-")}
           fullWidth
           variant="standard"
           multiline
@@ -148,7 +192,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
           <Typography component={"div"}>Study Details</Typography>
         </Grid> */}
 
-      <Grid item xs={12} sm={6} md={3} lg={2}>
+      {/* <Grid item xs={12} sm={6} md={3} lg={2}>
         <TextField
           label="Result Number"
           value={StringUtil.ReplaceNull(study?.radresultno, "-")}
@@ -160,7 +204,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
             disableUnderline: true,
           }}
         />
-      </Grid>
+      </Grid> */}
 
       <Grid item xs={12} sm={6} md={3} lg={2}>
         <TextField
@@ -205,7 +249,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
       </Grid>
 
       {/* sm={6} md={3} lg={4} */}
-      <Grid item xs={12}>
+      <Grid item xs={12} sm={6} md={3} lg={2}>
         <TextField
           label="Admission Diagnosis"
           value={StringUtil.ReplaceNull(study_patient?.admdiagnosis, "-")}
@@ -221,7 +265,7 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
 
       <Grid item xs={12} sm={6} md={3} lg={2}>
         <TextField
-          label="Doctor"
+          label="Referring Physician"
           value={StringUtil.ReplaceNull(study?.referringdoc, "-")}
           fullWidth
           variant="standard"

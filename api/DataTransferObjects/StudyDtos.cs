@@ -33,11 +33,13 @@
             public string age { get; set; }
             public string birthdate { get; set; }
             public string resultdoc { get; set; }
-            public string study_link { get;set;}
+            public string mobileno { get; set; }
+            public string address { get; set; }
+            public string study_link { get; set; }
             public string dateencoded { get; set; }
             //
-            public string user { get;set;}
-            public string font_size { get;set;}
+            public string user { get; set; }
+            public string font_size { get; set; }
 
         }
 
@@ -49,6 +51,11 @@
             public string templatedeschtml { get; set; }
             public string user { get; set; }
             public string font_size { get; set; }
+        }
+
+        public class StudyFilterDto
+        {
+            public int days_ago { get; set; }
         }
 
     }

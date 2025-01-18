@@ -39,3 +39,8 @@ export interface StudyTemplateDto {
   templatedeschtml?: string;
   font_size?: string;
 }
+
+export interface StudyFilterDto {
+  days_ago: number;
+  // days_ago: 0 | 2;
+}

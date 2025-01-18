@@ -139,7 +139,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
       dispatch(
         PageActions.PushPageSideout({
-          title: `Previous Results - ${study_patient.admlastname} ${study_patient.admfirstname} | Current Procedure: ${study.proccode} | ${study.procdesc} |  ${study.urgency} `,
+          title: `Previous Results - ${study_patient.patientname}  | Current Procedure: ${study.proccode} | ${study.procdesc} |  ${study.urgency} `,
           width: `85vw`,
           BodyComponent: <StudyPreviousSideout></StudyPreviousSideout>,
         })
@@ -312,6 +312,10 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
     }
   }, [dispatch, radresultno, study_impression, loading_study_impression]);
 
+  // console.log(`divRef`, divRef.current);
+
+  console.log(parseInt(divRef.current?.getBoundingClientRect()?.top ?? "0"));
+
   return loading_study || loading_study_impression ? (
     <Loader></Loader>
   ) : (
@@ -339,8 +343,16 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       alignContent={`center`}
                     >
                       <span>Study/Imaging Report</span>
-
-                      <Chip label={StringUtil.ReplaceNull(study?.resulttag, "-")} color="info" size="small" />
+                      <span> - </span>
+                      <span>{study?.radresultno}</span>
+                      <span>|</span>
+                      <span>
+                        <b>{study?.procdesc}</b>
+                      </span>
+                      <span>|</span>
+                      <div>
+                        <Chip label={StringUtil.ReplaceNull(study?.resulttag, "-")} color="info" size="small" />
+                      </div>
                     </Box>
                     <Box
                       display={`grid`}
@@ -389,14 +401,16 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                 </Typography>
               </Grid>
 
-              {is_show_study && (
+              {is_show_study && parseInt(divRef.current?.getBoundingClientRect()?.top ?? "0") > 0 && (
                 <Grid item xs={12} md={is_show_viewer ? 6 : 12}>
                   <div>
                     <RtfComponent
                       value={rtf_impression}
                       onChange={onEditorChange}
                       read_only={!["D", "P"].includes(study_impression?.resulttag)}
-                      height={is_full_screen_study ? `82vh` : `700px`}
+                      height={
+                        is_full_screen_study ? `82vh` : `calc(100vh - ${parseInt(divRef.current?.getBoundingClientRect()?.top ?? "0") + 220}px)`
+                      }
                       font_size={font_size}
                       set_font_size={set_font_size}
                       actions={[
@@ -450,7 +464,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                 </Grid>
               )}
 
-              {is_show_viewer && (
+              {is_show_viewer && parseInt(divRef.current?.getBoundingClientRect()?.top ?? "0") > 0 && (
                 <Grid item xs={12} md={is_show_study ? 6 : 12}>
                   {!!study?.study_link && (
                     <Paper
@@ -489,7 +503,9 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       </div>
                       <div
                         style={{
-                          height: is_full_screen_study ? `calc(90.3vh - 46px)` : `calc(800px - 46px)`,
+                          height: is_full_screen_study
+                            ? `calc(90.3vh - 46px)`
+                            : `calc(100vh - ${parseInt(divRef.current?.getBoundingClientRect()?.top ?? "0") + 220}px)`,
                           position: `relative`,
                           borderRadius: `3px`,
                           background: `black`,
