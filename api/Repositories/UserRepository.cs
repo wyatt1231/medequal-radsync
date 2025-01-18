@@ -51,7 +51,9 @@ namespace radsync_server.Repositories
 
                 , payload, transaction: tran);
 
+            if (string.IsNullOrEmpty(username)) return null;
 
+<<<<<<< HEAD
             if (username != null)
             {
                 string doccode = await con.QuerySingleOrDefaultAsync<string>(
@@ -74,20 +76,54 @@ namespace radsync_server.Repositories
                 }
 
                 int admin_count = await con.QuerySingleOrDefaultAsync<int>(
+=======
+            int is_allow_login = await con.QuerySingleOrDefaultAsync<int>(
+>>>>>>> master
                               $@" SELECT COUNT(up.`username`) FROM  `userpermission` up 
-                                 WHERE 
-                                 up.`modid` IN ('radsync','admin') AND up.`username` = @username AND up.`logid` = 'login';"
+                                     WHERE 
+                                     up.`modid` IN ('radsync','admin') AND up.`username` = @username AND up.`logid` = 'login';"
                               , payload, transaction: tran);
 
-                if (admin_count > 0)
+            if (is_allow_login < 1) return list_user_roles;
+
+            string doccode = await con.QuerySingleOrDefaultAsync<string>(
+                          $@"SELECT doccode FROM docmaster 
+                                 WHERE doccode = REPLACE(CONVERT(@username USING utf8),`GetDefaultValue`('DOC_PORTAL_USER_PREFIX'),'') LIMIT 1;"
+                          , payload, transaction: tran);
+
+
+            if (!String.IsNullOrEmpty(doccode))
+            {
+                username = doccode;
+                list_user_roles.Add(new UserDto
                 {
-                    list_user_roles.Add(new UserDto
-                    {
-                        username = username,
-                        user_type = "ADMIN"
-                    });
-                }
+                    username = username,
+                    user_type = "DOCTOR"
+                });
             }
+            else
+            {
+                list_user_roles.Add(new UserDto
+                {
+                    username = username,
+                    user_type = "ADMIN"
+                });
+            }
+
+            //int admin_count = await con.QuerySingleOrDefaultAsync<int>(
+            //              $@" SELECT COUNT(up.`username`) FROM  `userpermission` up 
+            //                 WHERE 
+            //                 up.`modid` IN ('radsync','admin') AND up.`username` = @username AND up.`logid` = 'login';"
+            //              , payload, transaction: tran);
+
+            //if (admin_count > 0)
+            //{
+            //    list_user_roles.Add(new UserDto
+            //    {
+            //        username = username,
+            //        user_type = "ADMIN"
+            //    });
+            //}
 
             await tran.CommitAsync();
             return list_user_roles;

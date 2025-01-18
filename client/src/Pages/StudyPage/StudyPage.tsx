@@ -152,10 +152,38 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
 
   useEffect(() => {
     // fetchData();
-    console.log(`page`, page);
-    console.log(`pageSize`, size);
-    console.log(`sortModel`, sort);
-    console.log(`filterModel`, filter);
+    // console.log(`page`, page);
+    // console.log(`pageSize`, size);
+    // console.log(`sortModel`, sort);
+    // console.log(`filterModel`, filter);
+
+    // const s :string[] = [];
+
+    // s.join(`,`)
+
+    /*
+    -- STRING
+        equals
+        contains
+        startsWith
+        endsWith
+        isEmpty
+        isNotEmpty
+        isAnyOf -> string[]
+
+
+     DATETIME
+  --     is
+         not
+         after
+         onOrAfter
+         before
+         onOrBefore
+         isEmpty
+         isNotEmpty
+    */
+
+    console.log(filter.items);
   }, [page, size, sort, filter]);
 
   return (
@@ -191,10 +219,6 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                 onPageSizeChange={handlePageSizeChange}
                 onSortModelChange={handleSortModelChange}
                 onFilterModelChange={handleFilterModelChange}
-                // onKeyDown={handleKeyPress}
-                // onMenuClose={() => {
-                //   alert(`enter colum header`);
-                // }}
               />
             </div>
           </Grid>

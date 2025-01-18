@@ -52,7 +52,7 @@ const StudyManageTemplate: FC<StudyManageTemplateProps> = memo(({ set_font_size,
         return (
           <>
             <Box>
-              {![`F`, `P`, `C`].includes(study_impression.resulttag) && (
+              {![`F`, `C`].includes(study_impression.resulttag) && (
                 <IconButton
                   title={"Use Study Template"}
                   onClick={() => {

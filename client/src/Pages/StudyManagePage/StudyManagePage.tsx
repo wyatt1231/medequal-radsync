@@ -199,7 +199,12 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
   const onClickOpenLinkNewWindow = () => {
     if (!!study?.study_link) {
-      window.open(study?.study_link, "_blank", "noopener,noreferrer");
+      // window.hei
+
+      const width = window.screen.availWidth;
+      const height = window.screen.availHeight;
+
+      window.open(study?.study_link, "_blank", `width=${width},height=${height},top=0,left=0`);
     }
   };
 
@@ -390,7 +395,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                     <RtfComponent
                       value={rtf_impression}
                       onChange={onEditorChange}
-                      read_only={!["D"].includes(study_impression?.resulttag)}
+                      read_only={!["D", "P"].includes(study_impression?.resulttag)}
                       height={is_full_screen_study ? `82vh` : `700px`}
                       font_size={font_size}
                       set_font_size={set_font_size}
@@ -410,7 +415,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       <Button
                         variant="outlined"
                         color="secondary"
-                        disabled={!["D"].includes(study_impression?.resulttag)}
+                        disabled={!["D", "P"].includes(study_impression?.resulttag)}
                         onClick={async () => {
                           await onSubmitStudy(`D`);
                         }}
@@ -421,7 +426,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       <Button
                         variant="contained"
                         color="primary"
-                        disabled={!["D"].includes(study_impression?.resulttag)}
+                        disabled={!["D", "P"].includes(study_impression?.resulttag)}
                         onClick={async () => {
                           await onSubmitStudy(`F`);
                         }}

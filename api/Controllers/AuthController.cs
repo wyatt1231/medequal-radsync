@@ -43,6 +43,12 @@ namespace radsync_server.Controllers
             {
                 List<UserDto> user_roles = await user_repository.AuthAsync(payload);
 
+                if(user_roles == null)
+                    return Ok(new { success = false, message = "The username and/or password that you have entered is not correct. " });
+
+                if(user_roles.Count == 0)
+                    return Ok(new { success = false, message = "Your account has not yet been authorized to access Radsync. Please contact support for further assistance." });
+
                 if (user_roles?.Count > 0)
                 {
                     var claims = new Claim[user_roles.Count + 1];
