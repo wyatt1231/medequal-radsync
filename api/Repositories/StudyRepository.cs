@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using static Api.DataTransferObjects.PagingDtos;
 using static Api.DataTransferObjects.StudyDtos;
 using static Api.DataTransferObjects.UserDtos;
 
@@ -28,7 +29,7 @@ namespace radsync_server.Repositories
         Task<StudyDto> GetStudy(string radresultno, UserDto user);
         Task<StudyDto> GetStudyImpression(string radresultno, UserDto user);
         Task<InpatientDtos> GetStudyPatient(string radresultno, UserDto user);
-        Task<List<StudyDto>> GetStudys(UserDto user, StudyFilterDto filter);
+        Task<List<StudyDto>> GetStudys(UserDto user, PagingDto paging);
         Task<List<StudyTemplateDto>> GetStudyTemplates(UserDto user);
         Task<StudyDto> UpdateStudyImpression(StudyDto study, UserDto user);
         Task<StudyTemplateDto> UpdateStudyTemplate(StudyTemplateDto study, UserDto user);
@@ -50,41 +51,92 @@ namespace radsync_server.Repositories
             this.env = env;
 
         }
-        public async Task<List<StudyDto>> GetStudys(UserDto user, StudyFilterDto filter)
+
+        public string QueryFilter(FilterDto filter)
+        {
+            string filter_query = "";
+            string operatorValue = filter.operatorValue.ToLower();
+            string value = filter.value;
+            string columnField = $@"TRIM({filter.columnField})";
+
+
+            if (operatorValue == "" || filter.value == "") return filter_query;
+
+            if (filter.type == "date")
+            {
+                if ((string.Equals(operatorValue, "is", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} = '{value}')";
+                if ((string.Equals(operatorValue, "not", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} != '{value}')";
+                if ((string.Equals(operatorValue, "after", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} > '{value}')";
+                if ((string.Equals(operatorValue, "onOrAfter", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} >= '{value}')";
+                if ((string.Equals(operatorValue, "before", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} < '{value}')";
+                if ((string.Equals(operatorValue, "onOrBefore", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} <= '{value}')";
+            }
+            else
+            {
+                //string
+                if ((string.Equals(operatorValue, "equals", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} = '{value}'";
+                if ((string.Equals(operatorValue, "contains", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} LIKE '%{value}%'";
+                if ((string.Equals(operatorValue, "startsWith", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} LIKE '{value}%'";
+                if ((string.Equals(operatorValue, "endsWith", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} LIKE '%{value}'";
+                if ((string.Equals(operatorValue, "isEmpty", StringComparison.OrdinalIgnoreCase))) filter_query = $@"{columnField} is not null and {columnField}  != '')";
+                if ((string.Equals(operatorValue, "isAnyOf", StringComparison.OrdinalIgnoreCase)))
+                {
+                    List<string> values = value.Split(",").ToList();
+                    if (values.Count > 0)
+                    {
+                        for (int i = 0; i < values.Count; i++) values[i] = $@"'{values[i]}'";
+
+                        filter_query = $@"{columnField} in ({string.Join(",", values)})";
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(filter_query)) filter_query = $" WHERE {filter_query} ";
+            //date
+
+            return filter_query;
+        }
+
+
+        public string QuerySort(SortDto sort)
+        {
+            if(string.IsNullOrEmpty(sort.field) || string.IsNullOrEmpty(sort.sort) ) return "";
+            string filter_query = $@" ORDER BY {sort.field} {sort.sort} ";
+            return filter_query;
+        }
+
+        public async Task<List<StudyDto>> GetStudys(UserDto user, PagingDto paging)
         {
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
             string sql_query = $@"SELECT * FROM 
                                         (SELECT 
-                                         GetRadResultTag(rd.resulttag) resulttag,rd.hospitalno 
-                                         ,rd.patrefno,CONCAT(pat.lastname,', ',pat.firstname,' ',pat.suffix,' ',pat.middlename) AS patientname 
-                                         ,DATE_FORMAT(birthdate, '%Y-%m-%d') AS dob,pat.sex 
-                                         ,radresultno radresultno,DATE_FORMAT(rd.dateencoded, '%Y-%m-%dT%H:%i:%s') AS studydate
-                                         ,procdesc,urgency,modality
-                                         ,CONCAT( COALESCE(dm.`lastname`,''),', ', COALESCE(dm.`firstname`,''),' ',COALESCE(dm.`middlename`,''))  referringdoc 
-                                         ,inp.mobileno 
-                                         ,concat(b.barangaydesc,', ', c.citymundesc,', ', p.provincedesc,', ', r.regiondesc,', ' ,inp.admperzipcode) address
-                                         #,DATEDIFF(date(now()), date(rd.dateencoded))  a_order
-                                         FROM radresult rd 
-                                         LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
-                                         LEFT JOIN docmaster dm ON dm.doccode = rd.reqdoccode
-                                         LEFT JOIN inpmaster inp ON inp.patno=rd.patrefno 
-                                         LEFT JOIN patmaster pat ON pat.hospitalno=inp.hospitalno 
-                                         LEFT JOIN department d ON d.deptcode=chargedept 
-                                         left join region r on r.regioncode  = inp.admperregion 
-                                         left join province p  on p.provincecode  = inp.admperprovince  
-                                         left join citymunicipality c on c.citymuncode  = inp.admpercitymun  
-                                         left join barangay b  on b.barangaycode  = inp.admperbarangay  
-                                         WHERE
-                                         rd.deptcode='0004'
-                                         AND rd.resulttag IN ('D', 'P','F','C')
-                                         and (DATEDIFF(date(now()), date(rd.dateencoded))) <= @days_ago
+                                        CASE WHEN rd.resulttag='C' THEN 'CHARGE' WHEN rd.resulttag='D' THEN 'DRAFT' 
+                                        WHEN rd.resulttag='F' THEN 'FINAL' WHEN rd.resulttag='P' THEN 'PERFORMED' 
+                                        WHEN rd.resulttag='R' THEN 'REVOKED' WHEN rd.resulttag='M' THEN 'CREDIT MEMO' 
+                                        WHEN rd.resulttag='V' THEN 'RECEIVED' WHEN rd.resulttag='T' THEN 'PRINTED' ELSE 'SCHEDULE' END resulttag
+                                        ,rd.hospitalno 
+                                        ,rd.patrefno,CONCAT(pat.lastname,', ',pat.firstname,' ',pat.suffix,' ',pat.middlename) AS patientname 
+                                        ,DATE_FORMAT(birthdate,'%Y-%m-%d') AS dob,pat.sex 
+                                        ,radresultno, DATE_FORMAT(rd.dateencoded, '%Y-%m-%dT%H:%i:%s')  AS studydate 
+                                        ,procdesc,urgency,modality,COALESCE(dm.doc_name,'') referringdoc  
+                                        ,IF(TRIM(address)='',completeaddress, CONCAT(TRIM(address),', ',completeaddress)) address
+                                        FROM radresult rd 
+                                        LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
+                                        LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
+                                        LEFT JOIN patmaster pat ON pat.hospitalno=rd.hospitalno 
+                                        LEFT JOIN department d ON d.deptcode=chargedept 
+                                        LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay 
+                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')  
+                                         {(paging.days_ago >= 0 ? $"AND (DATEDIFF(date(now()), date(rd.dateencoded))) <= {paging.days_ago}" : "")}
                                         ) 
                                     AS studies 
+                                    {QueryFilter(paging.filter)} {QuerySort(paging.sort)} LIMIT {paging.size} OFFSET {((paging.page  ) * paging.size )}
                                 ";
 
-            List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, new { filter.days_ago }, transaction: transaction)).ToList();
+
+            List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, new { days_ago = 5 }, transaction: transaction)).ToList();
             return data;
         }
 

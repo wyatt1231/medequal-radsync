@@ -6,6 +6,7 @@ import { NavLink } from "react-router-dom";
 import PageActions from "../../Contexts/Actions/PageActions";
 import StudyActions from "../../Contexts/Actions/StudyActions";
 import { RootStore } from "../../Contexts/Store";
+import { PagingDto } from "../../Interfaces/PagingDtos";
 import { StudyDto, StudyFilterDto } from "../../Interfaces/StudyInterfaces";
 import DateUtils from "../../Utils/DateUtils";
 interface StudyPageProps {}
@@ -83,12 +84,12 @@ const columns: GridColDef<StudyDto>[] = [
     flex: 1,
   },
   //address
-  {
-    field: "mobileno",
-    headerName: "Contact No.",
-    editable: false,
-    flex: 1,
-  },
+  // {
+  //   field: "mobileno",
+  //   headerName: "Contact No.",
+  //   editable: false,
+  //   flex: 1,
+  // },
   {
     field: "studydate",
     headerName: "Study Date",
@@ -140,9 +141,36 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
     set_is_loading_table(is_loading);
   }, []);
 
+  const [study_paging, set_study_paging] = useState<PagingDto>({
+    page: 0,
+    size: 100,
+    total: studys?.length ?? 0,
+    sort: {
+      field: ``,
+      sort: `asc`,
+    },
+    filter: {
+      columnField: ``,
+      operatorValue: ``,
+      value: ``,
+      type: `text`,
+    },
+    is_loading: false,
+    days_ago: 1,
+  });
+
   useEffect(() => {
-    dispatch(StudyActions.SetStudys(filter, setIsLoadingTable));
-  }, [dispatch, filter, setIsLoadingTable]);
+    study_paging.days_ago = filter.days_ago;
+    if (Array.isArray(study_paging?.filter?.value)) {
+      study_paging.filter.value = study_paging?.filter?.value.join(",");
+    }
+
+    dispatch(StudyActions.SetStudys(study_paging, setIsLoadingTable));
+  }, [dispatch, filter, filter.days_ago, setIsLoadingTable, study_paging]);
+
+  // useEffect(() => {
+  //   dispatch(StudyActions.SetStudys(filter, setIsLoadingTable));
+  // }, [dispatch, filter, setIsLoadingTable]);
 
   useEffect(() => {
     if (divRef.current) {
@@ -207,6 +235,9 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                 <MenuItem value={7}>
                   <span>7 days ago</span>
                 </MenuItem>
+                <MenuItem value={-1}>
+                  <span>All</span>
+                </MenuItem>
               </TextField>
             </Grid>
           </Grid>
@@ -221,8 +252,6 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
         >
           <Grid container spacing={2}>
             {/* <Grid container rowSpacing={2} columnSpacing={2}> */}
-
-            <Grid item xs={12}></Grid>
 
             <Grid item xs={12}>
               <Typography component={"div"} className="form-separator">
@@ -243,6 +272,46 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                       sortModel: [{ field: `studydate`, sort: `desc` }],
                     },
                   }}
+                  pageSize={study_paging.size}
+                  rowCount={studys?.length * (study_paging?.page + 1) + 1}
+                  paginationMode="server"
+                  onPageChange={(page) => {
+                    set_study_paging({
+                      ...study_paging,
+                      page: page,
+                    });
+                  }}
+                  onPageSizeChange={(size) => {
+                    set_study_paging({
+                      ...study_paging,
+                      size: size,
+                    });
+                  }}
+                  onSortModelChange={(sort) => {
+                    if (sort.length > 0) {
+                      set_study_paging({
+                        ...study_paging,
+                        sort: {
+                          field: sort[0].field,
+                          sort: sort[0].sort,
+                        },
+                      });
+                    }
+                  }}
+                  onFilterModelChange={(filter) => {
+                    const operator: any = filter.items[0].operatorValue;
+                    set_study_paging({
+                      ...study_paging,
+                      filter: {
+                        columnField: filter.items[0].columnField,
+                        operatorValue: operator,
+                        value: filter.items[0].value,
+                        type: columns?.find((p) => p.headerName === filter.items[0].columnField)?.type ?? "string",
+                      },
+                    });
+                  }}
+                  page={study_paging.page}
+                  pagination
                 />
               </div>
             </Grid>

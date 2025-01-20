@@ -1,12 +1,13 @@
 import { Axios, FetchJsonHeader } from "../../Config/ApiConfig";
 import { SERVER_URL } from "../../Config/Config";
 import { InpatientDto } from "../../Interfaces/InpatientInterfaces";
+import { PagingDto } from "../../Interfaces/PagingDtos";
 
-import { StudyDto, StudyFilterDto, StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
+import { StudyDto, StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
 
 const BASE_URL = `api/study`;
 
-const GetStudies = async (filter: StudyFilterDto): Promise<StudyDto[]> => {
+const GetStudies = async (filter: PagingDto): Promise<StudyDto[]> => {
   const response = await Axios.post(SERVER_URL + BASE_URL, filter, {
     headers: FetchJsonHeader,
   });

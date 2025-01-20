@@ -1,15 +1,16 @@
 import { Dispatch } from "react";
-import { StudyDto, StudyFilterDto, StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
+import { PagingDto } from "../../Interfaces/PagingDtos";
+import { StudyDto, StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
 import StudyApi from "../Apis/StudyApi";
 import { PageReducerTypes } from "../Types/PageTypes";
 import { StudyReducerTypes } from "../Types/StudyTypes";
 import PageActions from "./PageActions";
 
 const SetStudys =
-  (filter: StudyFilterDto, loadingCallback?: (is_loading: boolean) => void) => async (dispatch: Dispatch<StudyReducerTypes | PageReducerTypes>) => {
+  (paging: PagingDto, loadingCallback?: (is_loading: boolean) => void) => async (dispatch: Dispatch<StudyReducerTypes | PageReducerTypes>) => {
     !!loadingCallback && loadingCallback(true);
     try {
-      const data = await StudyApi.GetStudies(filter);
+      const data = await StudyApi.GetStudies(paging);
       dispatch({
         type: "set_studys",
         studys: data,

@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
+using static Api.DataTransferObjects.PagingDtos;
 using static Api.DataTransferObjects.StudyDtos;
 using static Api.DataTransferObjects.UserDtos;
 
@@ -46,7 +47,7 @@ namespace radsync_server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<List<StudyDto>>> GetStudys([FromBody]  StudyFilterDto filter)
+        public async Task<ActionResult<List<StudyDto>>> GetStudys([FromBody]  PagingDto paging)
         {
             await mysql_db_context.BeginTransactionAsync();
 
@@ -56,7 +57,7 @@ namespace radsync_server.Controllers
                 user_type = UseClaims.PriorityRole((ClaimsIdentity)User.Identity)
             };
 
-            var data = await study_repo.GetStudys(user, filter);
+            var data = await study_repo.GetStudys(user, paging);
 
             await mysql_db_context.CommitTransactionAsync();
             return data;
