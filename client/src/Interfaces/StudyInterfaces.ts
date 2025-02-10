@@ -29,6 +29,7 @@ export interface StudyDto {
   dateencoded?: string;
   //
   study_link?: string;
+  prev_study_link?: string;
   font_size?: string;
 }
 

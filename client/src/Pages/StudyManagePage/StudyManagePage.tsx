@@ -5,7 +5,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PreviewIcon from "@mui/icons-material/Preview";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { Box, Button, Chip, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
+import { Box, Button, Chip, FormControlLabel, Grid, IconButton, Paper, Switch, Typography, useTheme } from "@mui/material";
 import { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -22,6 +22,7 @@ import StudyManagePagePatientInfo from "./StudyManagePagePatientInfo";
 import StudyManageTemplate from "./StudyManageTemplate";
 import StudyManageTemplateForm from "./StudyManageTemplateForm";
 import StudyPreviousSideout from "./StudyPreviousSideout";
+
 interface StudyManagePageProps {}
 
 interface StudyManagePageParamsProps {
@@ -43,6 +44,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const [is_full_screen_study, set_is_full_screen_study] = useState(false);
   const [is_show_study, set_is_show_study] = useState(true);
   const [is_show_viewer, set_is_show_viewer] = useState(true);
+  const [is_view_by_hospital_no, set_is_view_by_accesson_no] = useState(false);
   // const [is_full_screen_imaging, set_is_full_screen_imaging] = useState(false);
   const [rtf_impression, set_rtf_impression] = useState<string>("");
   const [loading_study, set_loading_study] = useState(false);
@@ -198,6 +200,10 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
     }
   };
 
+  const onClickToggleViewBy = () => {
+    set_is_view_by_accesson_no(!is_view_by_hospital_no);
+  };
+
   const onClickOpenLinkNewWindow = () => {
     if (!!study?.study_link) {
       // window.hei
@@ -205,7 +211,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
       const width = window.screen.availWidth;
       const height = window.screen.availHeight;
 
-      window.open(study?.study_link, "_blank", `width=${width},height=${height},top=0,left=0`);
+      window.open(is_view_by_hospital_no ? study?.prev_study_link : study?.study_link, "_blank", `width=${width},height=${height},top=0,left=0`);
     }
   };
 
@@ -322,6 +328,9 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
       }
     }
   }, [loading_study, loading_study_impression]);
+
+  console.log(`study_link`, study?.study_link);
+  console.log(`prev_study_link`, study?.prev_study_link);
 
   return loading_study || loading_study_impression ? (
     <Loader></Loader>
@@ -471,7 +480,8 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
               {is_show_viewer && (
                 <Grid item xs={12} md={is_show_study ? 6 : 12}>
-                  {!!study?.study_link && (
+                  {/* {!!study?.study_link && ( */}
+                  {(!!study?.study_link || !!study?.prev_study_link) && (
                     <Paper
                       style={{
                         display: `grid`,
@@ -497,6 +507,20 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                             backgroundColor: `#f1f1f1`,
                           }}
                         >
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                title={is_view_by_hospital_no ? `Uncheck To View By Accession No.` : `Check To View By Hospital No.`}
+                                inputProps={{
+                                  "aria-label": "Switch demo",
+                                }}
+                                onChange={onClickToggleViewBy}
+                                checked={is_view_by_hospital_no}
+                              />
+                            }
+                            label="View By Hospital No."
+                          />
+
                           <IconButton title={"Open Imaging In New Window"} onClick={onClickOpenLinkNewWindow} size={"small"}>
                             <OpenInNewIcon fontSize="small" color="primary" />
                           </IconButton>
@@ -518,7 +542,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       >
                         <iframe
                           ref={iframeRef}
-                          src={study.study_link}
+                          src={is_view_by_hospital_no ? study.prev_study_link : study.study_link}
                           style={{
                             width: "100%",
                             height: "100%",
@@ -528,13 +552,11 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                             left: 0,
                           }}
                           title="Embedded Content"
-                          // allowFullScreen={true}
                           scrolling="no"
                           frameBorder={0}
                         >
-                          {/* allow="autoplay; encrypted-media; fullscreen" */}
                           Your browser doesnot support iframes
-                          <a href={study.study_link}>click here to view the image directly.</a>
+                          <a href={is_view_by_hospital_no ? study.prev_study_link : study.study_link}>click here to view the image directly.</a>
                         </iframe>
                       </div>
                     </Paper>

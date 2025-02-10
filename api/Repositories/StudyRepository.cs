@@ -151,7 +151,7 @@ namespace radsync_server.Repositories
                                             rd.`radresultno`,GetRadResultTag(rd.resulttag) resulttag,  rd.`resultdate`, COALESCE(dm.doc_name,'') referringdoc , rd.csno,
                                             rd.`dateperformed`,ph.`proccode`, ph.`procdesc`,accessionno,rd.dateencoded AS studydate,
                                             rd.`urgency`,rd.`modality`
-                                            ,deptname sourcedept,rd.filmcontrolno
+                                            ,deptname sourcedept,rd.filmcontrolno, inp.hospitalno
                                             FROM radresult rd 
                                             LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
                                             LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
@@ -168,10 +168,10 @@ namespace radsync_server.Repositories
             {
                 throw new Exception($"The study with result number {radresultno} does not exist!");
             }
-
+            /*
             if (env.IsProduction())
             {
-                string config_link = configuration[Constants.PROCEDURE_LINK];
+                string accession_link = configuration[Constants.ACCESSION_LINK];
 
                 string result_no = study.radresultno;
                 if (result_no.Contains("R"))
@@ -179,13 +179,30 @@ namespace radsync_server.Repositories
                     result_no = result_no.Replace("R", "");
                 }
 
-                study.study_link = config_link + result_no;
+                study.study_link = accession_link + result_no;
+
+                string prev_study_link = configuration[Constants.PREV_STUDY_LINK];
+                study.prev_study_link = prev_study_link + study.hospitalno;
+
             }
             else
             {
                 //study.study_link = "https://universalviewer.io/uv.html?manifest=https://media.library.ohio.edu/iiif/2/lynnjohnson:728/manifest.json";
                 study.study_link = "https://192.168.1.55/ZFP?mode=Proxy#amp;un=zfpopenapi&amp;pw=YRLj8mqXPmkT7fTy44cjzIaoEca9rquhTY%2fkkl%2fOVdCZp4bWSQdw2bcRq7RujyjUrth7SPJP5ftYW3eQNUfd1g%3d%3d&amp;san=250001354";
+            }*/
+
+            string accession_link = configuration[Constants.ACCESSION_LINK];
+
+            string result_no = study.radresultno;
+            if (result_no.Contains("R"))
+            {
+                result_no = result_no.Replace("R", "");
             }
+
+            study.study_link = accession_link + result_no;
+
+            string prev_study_link = configuration[Constants.PREV_STUDY_LINK];
+            study.prev_study_link = prev_study_link + study.hospitalno;
 
             return study;
         }
@@ -341,11 +358,6 @@ namespace radsync_server.Repositories
                         $@"SELECT  resulttag   FROM `radresult` WHERE radresultno = @radresultno",
                         study, transaction: transaction);
 
-            //if (status == "P")
-            //{
-            //    throw new Exception("You are not allowed to update this result because it is already set as PERFORMED");
-            //}
-
 
             if (is_save_as_draft && new List<string> { "F", "C" }.Contains(status))
             {
@@ -359,6 +371,7 @@ namespace radsync_server.Repositories
 
             var study_result_entity = await this.GetStudy(study.radresultno, user);
 
+            string docCode=  await GetDoctorCode(user);
             study.user = user.username;
 
             if (is_save_as_draft)
@@ -366,7 +379,6 @@ namespace radsync_server.Repositories
                 await con.ExecuteAsync(
                             $@"update `radresult` set resulttag=@resulttag, resultdesc = @resultdesc,draftuser=@user, resultdate=now() where radresultno = @radresultno",
                             study, transaction: transaction);
-
             }
             else if (is_save_as_final)
             {
@@ -380,7 +392,7 @@ namespace radsync_server.Repositories
 
                 await con.ExecuteAsync(
                               $@"insert  into radresultdoc  set radresultno = @radresultno, doccode  = @doccode;",
-                              new { study_result_entity.radresultno, doccode = user.username }, transaction: transaction);
+                              new { study_result_entity.radresultno, doccode = docCode }, transaction: transaction);
             }
 
             return study;
@@ -419,16 +431,35 @@ namespace radsync_server.Repositories
             return is_success_log > 0;
         }
 
+        public async Task<string> GetDoctorCode(UserDto user)
+        {
+            var con = await this.mysql_db_context.GetConnectionAsync();
+            var transaction = await this.mysql_db_context.BeginTransactionAsync();
+
+            string docCode = "";
+
+            docCode = await con.QuerySingleOrDefaultAsync<string>(
+                     $@"select d.doccode from deptdoctor d  where d.useraccount  = @username limit 1;",
+                     new { user.username }, transaction: transaction);
+
+            if (!UserConfig.IsDoctor(user.user_type) && string.IsNullOrEmpty(docCode)) {
+               // throw new Exception("You are not allowed to do this action!");
+            }
+
+            return docCode;
+        }
 
         public async Task<List<StudyTemplateDto>> GetStudyTemplates(UserDto user)
         {
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
+            string docCode = await GetDoctorCode(user);
+
             List<StudyTemplateDto> templates = (await con.QueryAsync<StudyTemplateDto>($@"
                                                         select r.templateno, r.templatekey , r.templatedesc  from resulttemplate r  
-                                                        WHERE {(UserConfig.IsDoctor(user.user_type) ? $"r.tempdoccode = @doccode" : "r.encodedby=@doccode")}
-                                            ", new { doccode = user.username }, transaction: transaction)).ToList();
+                                                         {(UserConfig.IsDoctor(user.user_type) ? $"WHERE r.tempdoccode = @doccode" : "")}
+                                            ", new { doccode = docCode }, transaction: transaction)).ToList();
 
             foreach (var item in templates)
             {
@@ -444,7 +475,10 @@ namespace radsync_server.Repositories
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
-            study.user = user.username;
+            if (!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
+
+            string docCode = await GetDoctorCode(user);
+            study.user = docCode;
 
             int total = await con.QuerySingleOrDefaultAsync<int>("select  coalesce (MAX(CAST(rt.templateno AS UNSIGNED)), 0) from resulttemplate rt", new { }, transaction: transaction);
             total = total + 1;
@@ -453,8 +487,7 @@ namespace radsync_server.Repositories
 
             await con.ExecuteAsync(
                             $@"insert into resulttemplate set templateno=@templateno, tempdeptcode = '0004', templatekey = @templatekey,templatedesc = @templatedesc, 
-                               {(UserConfig.IsDoctor(user.user_type) ? "tempdoccode = @user," : "")} 
-                                encodedby = @user, templatedate  = now(), dateencoded  = now();",
+                                tempdoccode = '{docCode}', encodedby = '{user.username}', templatedate  = now(), dateencoded  = now();",
                             study, transaction: transaction);
 
             return study;
@@ -466,7 +499,10 @@ namespace radsync_server.Repositories
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
-            study.user = user.username;
+            if (!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
+
+            string docCode = await GetDoctorCode(user);
+            study.user = docCode;
 
             await con.ExecuteAsync(
                             $@"update resulttemplate set templatekey = @templatekey,templatedesc = @templatedesc where templateno=@templateno;",
@@ -481,6 +517,9 @@ namespace radsync_server.Repositories
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
+            if (!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
+
+            string docCode = await GetDoctorCode(user);
 
             int success = await con.ExecuteAsync(
                              $@"delete from resulttemplate where templateno=@templateno;",
@@ -505,7 +544,7 @@ namespace radsync_server.Repositories
                                  from radresult rd  
                                  left join prochdr ph on ph.proccode=rd.refcode  
                                  left join patmaster pat on pat.hospitalno=rd.hospitalno  
-                                 where resulttag='F' and rd.hospitalno=@hospitalno and rd.radresultno not in (@radresultno)
+                                 where resulttag='F' and rd.hospitalno=@hospitalno and rd.radresultno not in ('{study.radresultno}')
                                  order by rd.dateencoded
                                 ";
             //study.radresultno

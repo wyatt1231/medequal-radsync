@@ -61,15 +61,18 @@ namespace radsync_server.Repositories
 
             if (is_allow_login < 1) return list_user_roles;
 
-            string doccode = await con.QuerySingleOrDefaultAsync<string>(
-                          $@"SELECT doccode FROM docmaster 
-                                 WHERE doccode = REPLACE(CONVERT(@username USING utf8),`GetDefaultValue`('DOC_PORTAL_USER_PREFIX'),'') LIMIT 1;"
-                          , payload, transaction: tran);
+            //string doccode = await con.QuerySingleOrDefaultAsync<string>(
+            //              $@"SELECT doccode FROM docmaster 
+            //                     WHERE doccode = REPLACE(CONVERT(@username USING utf8),`GetDefaultValue`('DOC_PORTAL_USER_PREFIX'),'') LIMIT 1;"
+            //              , payload, transaction: tran);
 
+            string doccode = await con.QuerySingleOrDefaultAsync<string>(
+                          $@"select d.doccode from deptdoctor d  where d.useraccount  = @username limit 1;"
+                          , payload, transaction: tran);
 
             if (!String.IsNullOrEmpty(doccode))
             {
-                username = doccode;
+                //username = doccode;
                 list_user_roles.Add(new UserDto
                 {
                     username = username,

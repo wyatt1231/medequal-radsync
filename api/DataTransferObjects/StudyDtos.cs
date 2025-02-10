@@ -36,6 +36,7 @@
             public string mobileno { get; set; }
             public string address { get; set; }
             public string study_link { get; set; }
+            public string prev_study_link { get; set; }
             public string dateencoded { get; set; }
             //
             public string user { get; set; }

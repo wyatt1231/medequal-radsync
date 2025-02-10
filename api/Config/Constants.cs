@@ -10,6 +10,7 @@
         public const string FTP_BASE_URL = "FTP:base_url";
 
 
-        public const string PROCEDURE_LINK = "DEFAULTS:PROCEDURE_LINK";
+        public const string ACCESSION_LINK = "DEFAULTS:ACCESSION_LINK";
+        public const string PREV_STUDY_LINK = "DEFAULTS:PREV_STUDY_LINK";
     }
 }
