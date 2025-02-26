@@ -44,7 +44,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const [is_full_screen_study, set_is_full_screen_study] = useState(false);
   const [is_show_study, set_is_show_study] = useState(true);
   const [is_show_viewer, set_is_show_viewer] = useState(true);
-  const [is_view_by_hospital_no, set_is_view_by_accesson_no] = useState(false);
+  const [is_view_by_hospital_no, set_is_view_by_hospital_no] = useState(true);
   // const [is_full_screen_imaging, set_is_full_screen_imaging] = useState(false);
   const [rtf_impression, set_rtf_impression] = useState<string>("");
   const [loading_study, set_loading_study] = useState(false);
@@ -201,7 +201,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   };
 
   const onClickToggleViewBy = () => {
-    set_is_view_by_accesson_no(!is_view_by_hospital_no);
+    set_is_view_by_hospital_no(!is_view_by_hospital_no);
   };
 
   const onClickOpenLinkNewWindow = () => {
@@ -211,7 +211,11 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
       const width = window.screen.availWidth;
       const height = window.screen.availHeight;
 
-      window.open(is_view_by_hospital_no ? study?.prev_study_link : study?.study_link, "_blank", `width=${width},height=${height},top=0,left=0`);
+      window.open(
+        is_view_by_hospital_no ? study_patient?.prev_study_link : study?.study_link,
+        "_blank",
+        `width=${width},height=${height},top=0,left=0`
+      );
     }
   };
 
@@ -330,7 +334,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   }, [loading_study, loading_study_impression]);
 
   console.log(`study_link`, study?.study_link);
-  console.log(`prev_study_link`, study?.prev_study_link);
+  console.log(`prev_study_link`, study_patient?.prev_study_link);
 
   return loading_study || loading_study_impression ? (
     <Loader></Loader>
@@ -480,8 +484,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
               {is_show_viewer && (
                 <Grid item xs={12} md={is_show_study ? 6 : 12}>
-                  {/* {!!study?.study_link && ( */}
-                  {(!!study?.study_link || !!study?.prev_study_link) && (
+                  {!!study?.study_link && !!study_patient?.prev_study_link && (
                     <Paper
                       style={{
                         display: `grid`,
@@ -542,7 +545,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       >
                         <iframe
                           ref={iframeRef}
-                          src={is_view_by_hospital_no ? study.prev_study_link : study.study_link}
+                          src={is_view_by_hospital_no ? study_patient?.prev_study_link : study?.study_link}
                           style={{
                             width: "100%",
                             height: "100%",
@@ -556,7 +559,9 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                           frameBorder={0}
                         >
                           Your browser doesnot support iframes
-                          <a href={is_view_by_hospital_no ? study.prev_study_link : study.study_link}>click here to view the image directly.</a>
+                          <a href={is_view_by_hospital_no ? study_patient?.prev_study_link : study?.study_link}>
+                            click here to view the image directly.
+                          </a>
                         </iframe>
                       </div>
                     </Paper>

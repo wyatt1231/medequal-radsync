@@ -1,4 +1,9 @@
-﻿namespace Api.DataTransferObjects
+﻿using iTextSharp.text;
+
+using System;
+using System.Collections.Generic;
+
+namespace Api.DataTransferObjects
 {
     public class StudyDtos
     {
@@ -36,7 +41,6 @@
             public string mobileno { get; set; }
             public string address { get; set; }
             public string study_link { get; set; }
-            public string prev_study_link { get; set; }
             public string dateencoded { get; set; }
             //
             public string user { get; set; }
@@ -57,6 +61,18 @@
         public class StudyFilterDto
         {
             public int days_ago { get; set; }
+            public string patient_no { get; set; }
+            public string patient_name { get; set; }
+            public string hospital_no { get; set; }
+            public string referring_physician { get; set; }
+            public string study_date_from { get; set; }
+            public string study_date_to { get; set; }
+            public string accession_no { get; set; }
+            public string study_description { get; set; }
+            public List<string> urgency { get; set; }
+            public List<string> modality { get; set; }
+            public List<string> status { get; set; }
+            public List<string> patient_type { get; set; }
         }
 
     }

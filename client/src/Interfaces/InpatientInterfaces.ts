@@ -49,6 +49,7 @@ export interface InpatientDto {
   //   transfer_info?: string;
 
   patient_type?: string;
+  prev_study_link?: string;
 
   gensurvey?: string;
   chiefcomplaint?: string;

@@ -6,8 +6,8 @@ export interface PagingDto {
   page: number;
   size: number;
   total: number;
-  days_ago: number;
   is_loading: boolean;
+  other_filters?: string;
 }
 
 export interface FilterDto {

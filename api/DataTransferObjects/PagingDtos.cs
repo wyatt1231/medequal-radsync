@@ -10,6 +10,7 @@
             public int days_ago { get; set; }
             public int size { get; set; }
             public int total { get; set; }
+            public string other_filters { get; set; }
         }
 
         public  class FilterDto

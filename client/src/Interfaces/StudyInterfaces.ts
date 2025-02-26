@@ -29,7 +29,6 @@ export interface StudyDto {
   dateencoded?: string;
   //
   study_link?: string;
-  prev_study_link?: string;
   font_size?: string;
 }
 
@@ -43,5 +42,16 @@ export interface StudyTemplateDto {
 
 export interface StudyFilterDto {
   days_ago: number;
-  // days_ago: 0 | 2;
+  patient_no: string;
+  patient_name: string;
+  hospital_no: string;
+  referring_physician: string;
+  study_date_from: string;
+  study_date_to: string;
+  accession_no: string;
+  study_description: string;
+  urgency: string[];
+  modality: string[];
+  status: string[];
+  patient_type: string[];
 }

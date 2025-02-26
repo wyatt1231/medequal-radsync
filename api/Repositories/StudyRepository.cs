@@ -7,7 +7,8 @@ using Dapper;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+
+using Newtonsoft.Json;
 
 using radsync_server.Config;
 
@@ -91,7 +92,7 @@ namespace radsync_server.Repositories
                 }
             }
 
-            if (!string.IsNullOrEmpty(filter_query)) filter_query = $" WHERE {filter_query} ";
+            if (!string.IsNullOrEmpty(filter_query)) filter_query = $" {filter_query} ";
             //date
 
             return filter_query;
@@ -100,7 +101,7 @@ namespace radsync_server.Repositories
 
         public string QuerySort(SortDto sort)
         {
-            if(string.IsNullOrEmpty(sort.field) || string.IsNullOrEmpty(sort.sort) ) return "";
+            if (string.IsNullOrEmpty(sort.field) || string.IsNullOrEmpty(sort.sort)) return "";
             string filter_query = $@" ORDER BY {sort.field} {sort.sort} ";
             return filter_query;
         }
@@ -109,6 +110,44 @@ namespace radsync_server.Repositories
         {
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
+            StudyFilterDto filter = null;
+            string other_filters_join = "";
+
+
+            if (!string.IsNullOrEmpty(paging.other_filters))
+            {
+
+                 filter = JsonConvert.DeserializeObject<StudyFilterDto>(paging.other_filters);
+
+                List<string> other_filters = new List<string>();
+
+                if (filter.days_ago >= 0) other_filters.Add($" (DATEDIFF(date(now()), date(dateencoded))) <= @days_ago");
+                if (!string.IsNullOrEmpty(filter.patient_no)) other_filters.Add(" patrefno = @patient_no ");
+                if (!string.IsNullOrEmpty(filter.patient_name)) other_filters.Add(" patientname = @patient_name ");
+                if (!string.IsNullOrEmpty(filter.hospital_no)) other_filters.Add(" hospitalno = @hospital_no ");
+                if (!string.IsNullOrEmpty(filter.referring_physician)) other_filters.Add(" referringdoc = @referring_physician ");
+                if (!string.IsNullOrEmpty(filter.accession_no)) other_filters.Add(" radresultno = @accession_no ");
+                if (!string.IsNullOrEmpty(filter.study_description)) other_filters.Add(" procdesc = @study_description ");
+                if (!string.IsNullOrWhiteSpace(filter.study_date_from) ) other_filters.Add(" date(studydate) >= @study_date_from ");
+                if (!string.IsNullOrWhiteSpace(filter.study_date_to)) other_filters.Add(" date(studydate) <= @study_date_to ");
+                if (filter.urgency.Count() > 0) other_filters.Add(" urgency in @urgency ");
+                if (filter.modality.Count() > 0) other_filters.Add(" modality in @modality ");
+                if (filter.status.Count() > 0) other_filters.Add(" resulttag in @status ");
+                if (filter.patient_type.Count() > 0) other_filters.Add(" patient_type in @patient_type ");
+
+                other_filters_join = (other_filters.Count > 0 ? $" {string.Join(" AND ", other_filters)}" : $"");
+
+            }
+
+            string query_filter = QueryFilter(paging.filter);
+
+            bool has_adv_filter = !string.IsNullOrWhiteSpace(other_filters_join);
+            bool has_column_filter = !string.IsNullOrWhiteSpace(query_filter);
+
+
+
+            string filters = has_adv_filter ? $" WHERE {other_filters_join} {(has_column_filter ? $" AND {query_filter}" : "")}" 
+                            : has_column_filter ? $" WHERE {query_filter}" : "";
 
             string sql_query = $@"SELECT * FROM 
                                         (SELECT 
@@ -122,6 +161,8 @@ namespace radsync_server.Repositories
                                         ,radresultno, DATE_FORMAT(rd.dateencoded, '%Y-%m-%dT%H:%i:%s')  AS studydate 
                                         ,procdesc,urgency,modality,COALESCE(dm.doc_name,'') referringdoc  
                                         ,IF(TRIM(address)='',completeaddress, CONCAT(TRIM(address),', ',completeaddress)) address
+                                        ,if(rd.pattype = 'I', 'Admitted OP', if(rd.pattype = 'O', 'OP Current', if(rd.pattype = 'C', 'Cash Current', ''))) patient_type
+                                        ,rd.dateencoded
                                         FROM radresult rd 
                                         LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
                                         LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
@@ -129,14 +170,15 @@ namespace radsync_server.Repositories
                                         LEFT JOIN department d ON d.deptcode=chargedept 
                                         LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay 
                                         where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')  
-                                         {(paging.days_ago >= 0 ? $"AND (DATEDIFF(date(now()), date(rd.dateencoded))) <= {paging.days_ago}" : "")}
+                                        
                                         ) 
                                     AS studies 
-                                    {QueryFilter(paging.filter)} {QuerySort(paging.sort)} LIMIT {paging.size} OFFSET {((paging.page  ) * paging.size )}
+                                    {filters}
+                                    {QuerySort(paging.sort)} LIMIT {paging.size} OFFSET {((paging.page) * paging.size)}
                                 ";
 
 
-            List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, new { days_ago = 5 }, transaction: transaction)).ToList();
+            List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, filter, transaction: transaction)).ToList();
             return data;
         }
 
@@ -151,12 +193,10 @@ namespace radsync_server.Repositories
                                             rd.`radresultno`,GetRadResultTag(rd.resulttag) resulttag,  rd.`resultdate`, COALESCE(dm.doc_name,'') referringdoc , rd.csno,
                                             rd.`dateperformed`,ph.`proccode`, ph.`procdesc`,accessionno,rd.dateencoded AS studydate,
                                             rd.`urgency`,rd.`modality`
-                                            ,deptname sourcedept,rd.filmcontrolno, inp.hospitalno
+                                            ,deptname sourcedept,rd.filmcontrolno
                                             FROM radresult rd 
                                             LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
                                             LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
-                                            LEFT JOIN inpmaster inp ON inp.patno=rd.patrefno 
-                                            LEFT JOIN patmaster pat ON pat.hospitalno=inp.hospitalno 
                                             LEFT JOIN department d ON d.deptcode=chargedept 
                                             WHERE 
                                             rd.`radresultno` = @radresultno LIMIT 1"
@@ -168,28 +208,6 @@ namespace radsync_server.Repositories
             {
                 throw new Exception($"The study with result number {radresultno} does not exist!");
             }
-            /*
-            if (env.IsProduction())
-            {
-                string accession_link = configuration[Constants.ACCESSION_LINK];
-
-                string result_no = study.radresultno;
-                if (result_no.Contains("R"))
-                {
-                    result_no = result_no.Replace("R", "");
-                }
-
-                study.study_link = accession_link + result_no;
-
-                string prev_study_link = configuration[Constants.PREV_STUDY_LINK];
-                study.prev_study_link = prev_study_link + study.hospitalno;
-
-            }
-            else
-            {
-                //study.study_link = "https://universalviewer.io/uv.html?manifest=https://media.library.ohio.edu/iiif/2/lynnjohnson:728/manifest.json";
-                study.study_link = "https://192.168.1.55/ZFP?mode=Proxy#amp;un=zfpopenapi&amp;pw=YRLj8mqXPmkT7fTy44cjzIaoEca9rquhTY%2fkkl%2fOVdCZp4bWSQdw2bcRq7RujyjUrth7SPJP5ftYW3eQNUfd1g%3d%3d&amp;san=250001354";
-            }*/
 
             string accession_link = configuration[Constants.ACCESSION_LINK];
 
@@ -201,8 +219,6 @@ namespace radsync_server.Repositories
 
             study.study_link = accession_link + result_no;
 
-            string prev_study_link = configuration[Constants.PREV_STUDY_LINK];
-            study.prev_study_link = prev_study_link + study.hospitalno;
 
             return study;
         }
@@ -306,6 +322,12 @@ namespace radsync_server.Repositories
 
             InpatientDtos patient = await con.QuerySingleOrDefaultAsync<InpatientDtos>(query, new { radresultno }, transaction: transaction);
 
+
+
+            string prev_study_link = configuration[Constants.PREV_STUDY_LINK];
+            patient.prev_study_link = prev_study_link + patient.hospitalno;
+
+
             if (patient == null)
             {
                 throw new Exception($"The study with radresultno {radresultno} does not exist!");
@@ -371,7 +393,7 @@ namespace radsync_server.Repositories
 
             var study_result_entity = await this.GetStudy(study.radresultno, user);
 
-            string docCode=  await GetDoctorCode(user);
+            string docCode = await GetDoctorCode(user);
             study.user = user.username;
 
             if (is_save_as_draft)
@@ -442,8 +464,9 @@ namespace radsync_server.Repositories
                      $@"select d.doccode from deptdoctor d  where d.useraccount  = @username limit 1;",
                      new { user.username }, transaction: transaction);
 
-            if (!UserConfig.IsDoctor(user.user_type) && string.IsNullOrEmpty(docCode)) {
-               // throw new Exception("You are not allowed to do this action!");
+            if (!UserConfig.IsDoctor(user.user_type) && string.IsNullOrEmpty(docCode))
+            {
+                // throw new Exception("You are not allowed to do this action!");
             }
 
             return docCode;

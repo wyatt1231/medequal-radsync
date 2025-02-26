@@ -34,7 +34,7 @@ const SetStudy =
       !!loadingCallback && loadingCallback(false);
     } catch (error) {
       PageActions.SetHttpErrorPrompt(error);
-      window.location.replace(`/404`);
+      // window.location.replace(`/404`);
     }
   };
 
