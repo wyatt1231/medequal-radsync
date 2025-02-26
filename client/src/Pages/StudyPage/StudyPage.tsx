@@ -312,6 +312,25 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
 
             <Grid item xs={4} md={3} lg={2}>
               <TextField
+                label="Patient Name"
+                size="small"
+                fullWidth
+                variant="standard"
+                value={filter.patient_name}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                onChange={(e) => {
+                  set_filter({
+                    ...filter,
+                    patient_name: e.target.value,
+                  });
+                }}
+              ></TextField>
+            </Grid>
+
+            <Grid item xs={4} md={3} lg={2}>
+              <TextField
                 label="Hospital No."
                 size="small"
                 fullWidth

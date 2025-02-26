@@ -122,12 +122,12 @@ namespace radsync_server.Repositories
                 List<string> other_filters = new List<string>();
 
                 if (filter.days_ago >= 0) other_filters.Add($" (DATEDIFF(date(now()), date(dateencoded))) <= @days_ago");
-                if (!string.IsNullOrEmpty(filter.patient_no)) other_filters.Add(" patrefno = @patient_no ");
-                if (!string.IsNullOrEmpty(filter.patient_name)) other_filters.Add(" patientname = @patient_name ");
-                if (!string.IsNullOrEmpty(filter.hospital_no)) other_filters.Add(" hospitalno = @hospital_no ");
-                if (!string.IsNullOrEmpty(filter.referring_physician)) other_filters.Add(" referringdoc = @referring_physician ");
-                if (!string.IsNullOrEmpty(filter.accession_no)) other_filters.Add(" radresultno = @accession_no ");
-                if (!string.IsNullOrEmpty(filter.study_description)) other_filters.Add(" procdesc = @study_description ");
+                if (!string.IsNullOrEmpty(filter.patient_no)) other_filters.Add($" patrefno LIKE  '%{filter.patient_no}%'  ");
+                if (!string.IsNullOrEmpty(filter.patient_name)) other_filters.Add($" TRIM(patientname) LIKE '%{filter.patient_name}%'  ");
+                if (!string.IsNullOrEmpty(filter.hospital_no)) other_filters.Add($" hospitalno LIKE '%{filter.hospital_no}%'  ");
+                if (!string.IsNullOrEmpty(filter.referring_physician)) other_filters.Add($" TRIM(referringdoc) LIKE '%{filter.referring_physician}%'  ");
+                if (!string.IsNullOrEmpty(filter.accession_no)) other_filters.Add($" radresultno LIKE '%{filter.accession_no}%' ");
+                if (!string.IsNullOrEmpty(filter.study_description)) other_filters.Add($" procdesc LIKE '%{filter.study_description}%'  ");
                 if (!string.IsNullOrWhiteSpace(filter.study_date_from) ) other_filters.Add(" date(studydate) >= @study_date_from ");
                 if (!string.IsNullOrWhiteSpace(filter.study_date_to)) other_filters.Add(" date(studydate) <= @study_date_to ");
                 if (filter.urgency.Count() > 0) other_filters.Add(" urgency in @urgency ");
