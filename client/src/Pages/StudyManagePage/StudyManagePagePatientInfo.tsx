@@ -265,6 +265,20 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
 
       <Grid item xs={12} sm={6} md={3} lg={2}>
         <TextField
+          label="Patient History"
+          value={StringUtil.ReplaceNull(study_patient?.radhistory, "-")}
+          fullWidth
+          variant="standard"
+          multiline
+          InputProps={{
+            readOnly: true,
+            disableUnderline: true,
+          }}
+        />
+      </Grid>
+
+      <Grid item xs={12} sm={6} md={3} lg={2}>
+        <TextField
           label="Referring Physician"
           value={StringUtil.ReplaceNull(study?.referringdoc, "-")}
           fullWidth

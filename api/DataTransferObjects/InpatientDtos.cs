@@ -53,12 +53,7 @@ namespace Api.DataTransferObjects
         public string patient_type { get; set; }
 
         public string prev_study_link { get; set; }
-
-
+        public string radhistory { get; set; }
     }
-
-
-
-
 
 }
