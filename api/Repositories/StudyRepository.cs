@@ -7,6 +7,7 @@ using Dapper;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 using Newtonsoft.Json;
 
@@ -220,6 +221,13 @@ namespace radsync_server.Repositories
             study.study_link = accession_link + result_no;
 
 
+            if (!env.IsProduction())
+            {
+                study.study_link = accession_link + "250004605";
+            }
+
+
+
             return study;
         }
 
@@ -326,6 +334,11 @@ namespace radsync_server.Repositories
 
             string prev_study_link = configuration[Constants.PREV_STUDY_LINK];
             patient.prev_study_link = prev_study_link + patient.hospitalno;
+
+            if (!env.IsProduction())
+            {
+                patient.prev_study_link = prev_study_link + "00100233";
+            }
 
 
             if (patient == null)

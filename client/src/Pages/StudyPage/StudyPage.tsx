@@ -291,20 +291,21 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                 </MenuItem>
               </TextField>
             </Grid>
+
             <Grid item xs={4} md={3} lg={2}>
               <TextField
-                label="Patient No."
+                label="Hospital No."
                 size="small"
                 fullWidth
                 variant="standard"
-                value={filter.patient_no}
+                value={filter.hospital_no}
                 InputLabelProps={{
                   shrink: true,
                 }}
                 onChange={(e) => {
                   set_filter({
                     ...filter,
-                    patient_no: e.target.value,
+                    hospital_no: e.target.value,
                   });
                 }}
               ></TextField>
@@ -331,18 +332,18 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
 
             <Grid item xs={4} md={3} lg={2}>
               <TextField
-                label="Hospital No."
+                label="Patient No."
                 size="small"
                 fullWidth
                 variant="standard"
-                value={filter.hospital_no}
+                value={filter.patient_no}
                 InputLabelProps={{
                   shrink: true,
                 }}
                 onChange={(e) => {
                   set_filter({
                     ...filter,
-                    hospital_no: e.target.value,
+                    patient_no: e.target.value,
                   });
                 }}
               ></TextField>
