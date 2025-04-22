@@ -56,6 +56,7 @@ export interface InpatientDto {
   pasthistory?: string;
   briefhistory?: string;
   admdiagnosis?: string;
+  radhistory?: string;
 
   vital_signs?: IPatientVitalSign;
   ob?: IPatientOb;
