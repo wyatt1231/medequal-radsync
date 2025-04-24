@@ -175,7 +175,7 @@ namespace radsync_server.Repositories
                                         LEFT JOIN patmaster pat ON pat.hospitalno=rd.hospitalno 
                                         LEFT JOIN department d ON d.deptcode=chargedept 
                                         LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay 
-                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')  {(is_doctor  ? "" : " AND rd.readerdoc = " + docCode)}
+                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')  {(!is_doctor  ? "" : " AND rd.readerdoc = '" + docCode +"'")}
                                         ) 
                                     AS studies 
                                     {filters}
