@@ -25,7 +25,6 @@
 
 
 # SERVER
-/api/appsettings.json
 /api/uploads
 /api/chrome/*
 /api/.vs/*
