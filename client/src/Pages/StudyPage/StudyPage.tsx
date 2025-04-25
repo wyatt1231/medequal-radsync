@@ -215,8 +215,8 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
   }, [dispatch, setIsLoadingTable, study_paging]);
 
   useEffect(() => {
-    if (divRef.current) {
-      const rect = divRef.current.getBoundingClientRect();
+    if (divRef?.current) {
+      const rect = divRef.current?.getBoundingClientRect();
       set_position({ top: rect.top, left: rect.left });
     }
   }, []);
@@ -651,8 +651,8 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                       sortModel: [{ field: `studydate`, sort: `desc` }],
                     },
                   }}
-                  pageSize={study_paging.size}
-                  rowCount={studys?.length * (study_paging?.page + 1) + 1}
+                  pageSize={study_paging?.size ?? 0}
+                  rowCount={!studys || !study_paging?.page ? 0 : studys?.length ?? 0 * (study_paging?.page + 1) + 1}
                   paginationMode="server"
                   onPageChange={(page) => {
                     set_study_paging({
