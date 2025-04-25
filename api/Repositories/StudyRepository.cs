@@ -150,6 +150,11 @@ namespace radsync_server.Repositories
             string filters = has_adv_filter ? $" WHERE {other_filters_join} {(has_column_filter ? $" AND {query_filter}" : "")}" 
                             : has_column_filter ? $" WHERE {query_filter}" : "";
 
+
+            bool is_doctor = UserConfig.IsDoctor(user.user_type);
+            string docCode = await GetDoctorCode(user);
+
+
             string sql_query = $@"SELECT * FROM 
                                         (SELECT 
                                         CASE WHEN rd.resulttag='C' THEN 'CHARGE' WHEN rd.resulttag='D' THEN 'DRAFT' 
@@ -170,8 +175,7 @@ namespace radsync_server.Repositories
                                         LEFT JOIN patmaster pat ON pat.hospitalno=rd.hospitalno 
                                         LEFT JOIN department d ON d.deptcode=chargedept 
                                         LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay 
-                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')  
-                                        
+                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')  {(!is_doctor  ? "" : " AND rd.readerdoc = '" + docCode + "'")}
                                         ) 
                                     AS studies 
                                     {filters}
@@ -259,7 +263,7 @@ namespace radsync_server.Repositories
                           ,DATE_FORMAT(rd.dateperformed,'%m/%d/%Y %h:%m:%s %p') dateperformed
                           ,DATE_FORMAT(inp.admissiondate,'%m/%d/%Y %h:%m:%s %p') admissiondate
                           ,DATE_FORMAT(inp.dischargedate,'%m/%d/%Y %h:%m:%s %p') dischargedate
-                          ,mobileno,chiefcomplaint,admdiagnosis
+                          ,mobileno,chiefcomplaint,admdiagnosis, rd.radhistory
                           FROM radresult rd 
                           LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
                           LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
@@ -287,7 +291,7 @@ namespace radsync_server.Repositories
                             ,DATE_FORMAT(rd.dateperformed,'%m/%d/%Y %h:%m:%s %p') dateperformed
                             ,DATE_FORMAT(inp.trandate,'%m/%d/%Y %h:%m:%s %p') admissiondate
                             ,DATE_FORMAT(inp.expired,'%m/%d/%Y %h:%m:%s %p') dischargedate
-                            ,mobileno,chiefcomplaint,admdiagnosis
+                            ,mobileno,chiefcomplaint,admdiagnosis, rd.radhistory
                             FROM radresult rd 
                             LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
                             LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
@@ -315,7 +319,7 @@ namespace radsync_server.Repositories
                             ,DATE_FORMAT(rd.dateperformed,'%m/%d/%Y %h:%m:%s %p') dateperformed
                             ,DATE_FORMAT(rd.dateencoded,'%m/%d/%Y %h:%m:%s %p') admissiondate
                             ,DATE_FORMAT(rd.dateencoded,'%m/%d/%Y %h:%m:%s %p') dischargedate
-                            ,contactno mobileno,'' chiefcomplaint,'' admdiagnosis
+                            ,contactno mobileno,'' chiefcomplaint,'' admdiagnosis, rd.radhistory
                             FROM radresult rd 
                             LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
                             LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
