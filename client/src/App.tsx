@@ -13,12 +13,10 @@ import theme from "./Styles/MuiTheme";
 function App() {
   const notistackRef = React.createRef<SnackbarProvider>();
   const onClickDismiss = (key: React.ReactText) => () => {
-    if (notistackRef.current) {
+    if (notistackRef?.current) {
       notistackRef.current.closeSnackbar(key);
     }
   };
-
-  console.log(`notistackRef.current?`, notistackRef.current);
 
   return (
     <ReduxProvider store={Store}>

@@ -215,8 +215,8 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
   }, [dispatch, setIsLoadingTable, study_paging]);
 
   useEffect(() => {
-    if (divRef.current) {
-      const rect = divRef.current.getBoundingClientRect();
+    if (divRef?.current) {
+      const rect = divRef.current?.getBoundingClientRect();
       set_position({ top: rect.top, left: rect.left });
     }
   }, []);
