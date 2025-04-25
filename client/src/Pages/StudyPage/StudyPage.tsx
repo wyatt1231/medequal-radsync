@@ -651,8 +651,8 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                       sortModel: [{ field: `studydate`, sort: `desc` }],
                     },
                   }}
-                  pageSize={study_paging.size}
-                  rowCount={studys?.length * (study_paging?.page + 1) + 1}
+                  pageSize={study_paging?.size ?? 0}
+                  rowCount={studys?.length ?? 0 * (study_paging?.page + 1) + 1}
                   paginationMode="server"
                   onPageChange={(page) => {
                     set_study_paging({
