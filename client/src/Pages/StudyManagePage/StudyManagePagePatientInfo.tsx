@@ -39,8 +39,8 @@ const StudyManagePagePatientInfo: FC<StudyManagePagePatientInfoProps> = memo((pr
             </Box>
 
             <Box justifySelf={`end`}>
-              <IconButton title={props.isExpanded ? "Expand" : "Collapse"} onClick={props.onClickToggleExpand} size={"small"}>
-                {props.isExpanded ? <ExpandMoreIcon fontSize="small" color="primary" /> : <ExpandLessIcon fontSize="small" color="primary" />}
+              <IconButton title={props.isExpanded ? "Click to Collapse " : "Click to Expand"} onClick={props.onClickToggleExpand} size={"small"}>
+                {props.isExpanded ? <ExpandLessIcon fontSize="small" color="primary" /> : <ExpandMoreIcon fontSize="small" color="primary" />}
               </IconButton>
             </Box>
           </Box>
