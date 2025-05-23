@@ -385,7 +385,10 @@ namespace radsync_server.Repositories
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
-            if (!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
+            if (env.IsProduction())
+            {
+                if (!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
+            }
 
             //{ (UserConfig.IsDoctor(user.user_type) ? $"r.tempdoccode = @doccode" : "r.encodedby=@doccode")}
 
@@ -447,7 +450,11 @@ namespace radsync_server.Repositories
             var con = await this.mysql_db_context.GetConnectionAsync();
             var transaction = await this.mysql_db_context.BeginTransactionAsync();
 
-            if (!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
+            if (env.IsProduction())
+            {
+                if (!UserConfig.IsDoctor(user.user_type)) throw new Exception("You are not allowed to do this action!");
+
+            }
 
             int is_allow_verify = await con.QuerySingleAsync<int>(
                           $@"SELECT IF(resulttag IN ('F'), 1, 0)   FROM `radresult` WHERE radresultno = @radresultno",
@@ -466,6 +473,10 @@ namespace radsync_server.Repositories
             {
                 throw new Exception("The result has not been set to UNVERIED!");
             }
+
+            await con.ExecuteAsync(
+                             $@"delete from radresultdoc  where radresultno = @radresultno;",
+                             new { radresultno }, transaction: transaction);
 
             int is_success_log = await con.ExecuteAsync(
                                 $@"insert into radresult_log select *, now() addendum_date , @username addendum_by , @host, @ip from radresult where radresultno  = @radresultno",
