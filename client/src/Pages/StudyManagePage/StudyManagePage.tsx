@@ -51,6 +51,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const [loading_study_patient, set_loading_study_patient] = useState(false);
   const [loading_study_impression, set_loading_study_impression] = useState(false);
   const [height, set_height] = useState(800);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const onSubmitTemplate = async (form_type: FormType, payload: StudyTemplateDto) => {
     if (form_type === `ADD`) {
@@ -223,6 +224,10 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
     set_rtf_impression(content);
   };
 
+  const onClickToggleExpand = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
+
   const onSubmitStudy = useCallback(
     async (tag: `F` | `D`) => {
       const payload: StudyDto = {
@@ -322,12 +327,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
       set_font_size(study_impression?.font_size ?? `11pt`);
     }
   }, [dispatch, radresultno, study_impression, loading_study_impression]);
-
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const onClickToggleExpand = useCallback(() => {
-    setIsExpanded((prev) => !prev);
-  }, []);
 
   useEffect(() => {
     if (!loading_study && !loading_study_impression) {
