@@ -323,7 +323,11 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
     }
   }, [dispatch, radresultno, study_impression, loading_study_impression]);
 
-  // console.log(`divRef`, divRef.current);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const onClickToggleExpand = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
 
   useEffect(() => {
     if (!loading_study && !loading_study_impression) {
@@ -331,7 +335,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
         set_height(parseInt(divRef.current?.getBoundingClientRect()?.top ?? "800"));
       }
     }
-  }, [loading_study, loading_study_impression]);
+  }, [loading_study, loading_study_impression, isExpanded]);
 
   console.log(`study_link`, study?.study_link);
   console.log(`prev_study_link`, study_patient?.prev_study_link);
@@ -343,7 +347,11 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
       <Grid container rowSpacing={3} columnSpacing={3}>
         <Grid item xs={12}>
           <Paper style={{ padding: `1em` }}>
-            <StudyManagePagePatientInfo radresultno={radresultno}></StudyManagePagePatientInfo>
+            <StudyManagePagePatientInfo
+              radresultno={radresultno}
+              isExpanded={isExpanded}
+              onClickToggleExpand={onClickToggleExpand}
+            ></StudyManagePagePatientInfo>
           </Paper>
         </Grid>
 

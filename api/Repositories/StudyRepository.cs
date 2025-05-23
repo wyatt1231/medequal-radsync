@@ -118,7 +118,7 @@ namespace radsync_server.Repositories
             if (!string.IsNullOrEmpty(paging.other_filters))
             {
 
-                 filter = JsonConvert.DeserializeObject<StudyFilterDto>(paging.other_filters);
+                filter = JsonConvert.DeserializeObject<StudyFilterDto>(paging.other_filters);
 
                 List<string> other_filters = new List<string>();
 
@@ -129,7 +129,7 @@ namespace radsync_server.Repositories
                 if (!string.IsNullOrEmpty(filter.referring_physician)) other_filters.Add($" TRIM(referringdoc) LIKE '%{filter.referring_physician}%'  ");
                 if (!string.IsNullOrEmpty(filter.accession_no)) other_filters.Add($" radresultno LIKE '%{filter.accession_no}%' ");
                 if (!string.IsNullOrEmpty(filter.study_description)) other_filters.Add($" procdesc LIKE '%{filter.study_description}%'  ");
-                if (!string.IsNullOrWhiteSpace(filter.study_date_from) ) other_filters.Add(" date(studydate) >= @study_date_from ");
+                if (!string.IsNullOrWhiteSpace(filter.study_date_from)) other_filters.Add(" date(studydate) >= @study_date_from ");
                 if (!string.IsNullOrWhiteSpace(filter.study_date_to)) other_filters.Add(" date(studydate) <= @study_date_to ");
                 if (filter.urgency.Count() > 0) other_filters.Add(" urgency in @urgency ");
                 if (filter.modality.Count() > 0) other_filters.Add(" modality in @modality ");
@@ -147,7 +147,7 @@ namespace radsync_server.Repositories
 
 
 
-            string filters = has_adv_filter ? $" WHERE {other_filters_join} {(has_column_filter ? $" AND {query_filter}" : "")}" 
+            string filters = has_adv_filter ? $" WHERE {other_filters_join} {(has_column_filter ? $" AND {query_filter}" : "")}"
                             : has_column_filter ? $" WHERE {query_filter}" : "";
 
 
@@ -175,13 +175,17 @@ namespace radsync_server.Repositories
                                         LEFT JOIN patmaster pat ON pat.hospitalno=rd.hospitalno 
                                         LEFT JOIN department d ON d.deptcode=chargedept 
                                         LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay 
-                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')  {(!is_doctor  ? "" : " AND rd.readerdoc = '" + docCode + "'")}
+                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')  {(!is_doctor ? "" : " AND rd.readerdoc = '" + docCode + "'")}
                                         ) 
                                     AS studies 
                                     {filters}
-                                    {QuerySort(paging.sort)} LIMIT {paging.size} OFFSET {((paging.page) * paging.size)}
+                                    {QuerySort(paging.sort)} LIMIT {paging.size} OFFSET {((paging.page > 0 ? paging.page - 1 : 0) * paging.size)}
                                 ";
 
+            /*
+             page=1
+            size=100
+             */
 
             List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, filter, transaction: transaction)).ToList();
             return data;
