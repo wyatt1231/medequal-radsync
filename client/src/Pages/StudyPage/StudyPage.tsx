@@ -139,6 +139,12 @@ const columns: GridColDef<StudyDto>[] = [
     editable: false,
     flex: 2,
   },
+   {
+    field: "readerdoc",
+    headerName: "Assigned Doctor",
+    editable: false,
+    flex: 2,
+  },
 ];
 
 const initial_filter: StudyFilterDto = {
