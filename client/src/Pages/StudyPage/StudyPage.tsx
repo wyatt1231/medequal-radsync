@@ -695,7 +695,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                       },
                     });
                   }}
-                  page={study_paging.page}
+                  page={Math.min(study_paging.page, Math.max(0, Math.ceil((studys?.length ?? 0) / study_paging.size) - 1))}
                   pagination
                 />
               </div>
