@@ -42,6 +42,13 @@ const StudyManageTemplate: FC<StudyManageTemplateProps> = memo(({ set_font_size,
       },
     },
     {
+      field: "tempmodality",
+      headerName: "Modality",
+      editable: false,
+      minWidth: 100,
+      maxWidth: 100,
+    },
+    {
       field: "",
       headerName: "Actions",
       editable: false,

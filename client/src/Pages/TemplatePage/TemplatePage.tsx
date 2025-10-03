@@ -41,6 +41,13 @@ const TemplatePage: FC<TemplatePageProps> = memo(() => {
       },
     },
     {
+      field: "tempmodality",
+      headerName: "Modality",
+      editable: false,
+      minWidth: 100,
+      maxWidth: 100,
+    },
+    {
       field: "",
       headerName: "Actions",
       editable: false,

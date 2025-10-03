@@ -152,6 +152,7 @@ namespace radsync_server.Repositories
 
 
             bool is_doctor = UserConfig.IsDoctor(user.user_type);
+            bool isShowAll = !(filter.days_ago >= 0);
             string docCode = await GetDoctorCode(user);
 
 
@@ -168,24 +169,21 @@ namespace radsync_server.Repositories
                                         ,procdesc,urgency,modality,COALESCE(dm.doc_name,'') referringdoc  
                                         ,IF(TRIM(address)='',completeaddress, CONCAT(TRIM(address),', ',completeaddress)) address
                                         ,if(rd.pattype = 'I', 'Admitted OP', if(rd.pattype = 'O', 'OP Current', if(rd.pattype = 'C', 'Cash Current', ''))) patient_type
-                                        ,rd.dateencoded
+                                        ,rd.dateencoded, COALESCE(vrd.doc_name,'') readerdoc 
                                         FROM radresult rd 
                                         LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
                                         LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
                                         LEFT JOIN patmaster pat ON pat.hospitalno=rd.hospitalno 
                                         LEFT JOIN department d ON d.deptcode=chargedept 
-                                        LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay 
-                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')  {(!is_doctor ? "" : " AND rd.readerdoc = '" + docCode + "'")}
+                                        LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay
+                                        left join vw_requestingdoctor vrd on vrd.doccode  = rd.readerdoc 
+                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')   {((!is_doctor || isShowAll) ? "" : " AND rd.readerdoc = '" + docCode + "'")}
                                         ) 
                                     AS studies 
                                     {filters}
                                     {QuerySort(paging.sort)} LIMIT {paging.size} OFFSET {((paging.page > 0 ? paging.page - 1 : 0) * paging.size)}
                                 ";
 
-            /*
-             page=1
-            size=100
-             */
 
             List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, filter, transaction: transaction)).ToList();
             return data;
@@ -512,7 +510,7 @@ namespace radsync_server.Repositories
             string docCode = await GetDoctorCode(user);
 
             List<StudyTemplateDto> templates = (await con.QueryAsync<StudyTemplateDto>($@"
-                                                        select r.templateno, r.templatekey , r.templatedesc  from resulttemplate r  
+                                                        select r.templateno, r.templatekey , r.templatedesc, r.tempmodality from resulttemplate r  
                                                          {(UserConfig.IsDoctor(user.user_type) ? $"WHERE r.tempdoccode = @doccode" : "")}
                                             ", new { doccode = docCode }, transaction: transaction)).ToList();
 

@@ -1,151 +1,176 @@
-    public ResponseModel getRadStudyReportImpression(string radResultNo)
-        {
+# RadSync
 
-            using (MySqlConnection con = new MySqlConnection(DatabaseConfig.ConnectionString()))
-            {
-                con.Open();
-                using (var tran = con.BeginTransaction())
-                {
-                    try
-                    {
-                        string query = $@"select radresultno,resultdesc,resulttag from `radresult` where radresultno =@radResultNo limit 1";
-                        RadStudyReportImpressionModel impression = con.QuerySingle<RadStudyReportImpressionModel>(query, new { radResultNo = radResultNo }, transaction: tran);
-                        impression.resultdesc = RtfPipe.Rtf.ToHtml(impression.resultdesc);
+A comprehensive radiology synchronization and management system designed for healthcare facilities to streamline radiological study workflows and patient data management.
 
-                        tran.Commit();
-                        con.Close();
+## Overview
 
-                        return new ResponseModel
-                        {
-                            success = true,
-                            data = impression
-                        };
+RadSync is a full-stack web application that provides healthcare professionals with tools to manage radiological studies, patient information, and diagnostic workflows. The system integrates with existing radiology infrastructure to provide a unified interface for study management and reporting.
 
-                    }
+## Architecture
 
-                    catch (Exception e)
-                    {
+### Backend (API)
+- **Framework**: ASP.NET Core 5.0
+- **Database**: MySQL
+- **Authentication**: JWT Bearer tokens
+- **File Management**: FTP integration for medical imaging files
+- **PDF Generation**: iTextSharp for report generation
+- **Documentation**: Swagger/OpenAPI
 
-                        return new ResponseModel
-                        {
-                            success = false,
-                            message = $"Internal server error has occured. {e.Message.ToString()}"
-                        };
-                    }
-                }
-            }
-        }
+### Frontend (Client)
+- **Framework**: React 17 with TypeScript
+- **UI Library**: Material-UI (MUI) v5
+- **State Management**: Redux with Redux Thunk
+- **Routing**: React Router DOM
+- **Forms**: React Hook Form with Yup validation
+- **PDF Viewing**: React PDF Viewer
+- **Rich Text Editor**: React Quill
 
+## Key Features
 
+- **Study Management**: Comprehensive radiology study tracking and management
+- **User Authentication**: Secure login system with JWT tokens
+- **Patient Data Management**: Patient information and medical history tracking
+- **Report Generation**: PDF report creation and management
+- **Template System**: Customizable report templates
+- **File Management**: FTP-based medical imaging file handling
+- **Responsive Design**: Material Design UI components
+- **Real-time Updates**: Live data synchronization
 
+## Project Structure
 
-      public ResponseModel updateRadStudyImpression(IRadStudyUpdateImpression impressionParams)
-        {
-            using (MySqlConnection con = new MySqlConnection(DatabaseConfig.ConnectionString()))
-            {
-                con.Open();
-                using (var tran = con.BeginTransaction())
-                {
-                    try
-                    {
+```
+radsync/
+├── api/                    # ASP.NET Core Web API
+│   ├── Controllers/        # API endpoints
+│   ├── Entities/          # Data models
+│   ├── Repositories/      # Data access layer
+│   ├── Services/          # Business logic
+│   ├── Context/           # Database context
+│   ├── Pdf/               # PDF generation utilities
+│   └── Assets/            # Static resources
+├── client/                # React frontend application
+│   ├── src/
+│   │   ├── Components/    # Reusable UI components
+│   │   ├── Pages/         # Application pages
+│   │   ├── Services/      # API service layer
+│   │   ├── Contexts/      # React contexts and Redux store
+│   │   ├── Hooks/         # Custom React hooks
+│   │   └── Styles/        # Styling and theme
+├── docs/                  # Project documentation
+└── sites/                 # Deployment configurations
+```
 
-                        int isSavable = con.QuerySingle<int>(
-                               $@"SELECT  IF(`resulttag` IN ('D', 'C'), 1, 0)   FROM `radresult` WHERE radresultno = @radresultno",
-                               impressionParams, transaction: tran);
+## Getting Started
 
-                        if (isSavable == 1)
-                        {
-                            impressionParams.user = ((ClaimsIdentity)HttpContext.Current.User.Identity).Name;
+### Prerequisites
 
-                            if (impressionParams.resulttag.ToUpper().Equals("D"))
-                            {
+- .NET 5.0 SDK
+- Node.js 14+ and npm/yarn
+- MySQL Server
+- Git
 
-                                int isSaveDraft = con.Execute(
-                                   $@"update `radresult` set resulttag=@resulttag, resultdesc = @resultdesc,draftuser=@user, resultdate=now() where radresultno = @radresultno",
-                                   impressionParams, transaction: tran);
+### Backend Setup
 
-                                if (isSaveDraft == 1)
-                                {
-                                    tran.Commit();
-                                    con.Close();
-                                    return new ResponseModel
-                                    {
-                                        success = true,
-                                        message = "The radiology study report has been successfully saved to draft"
-                                    };
-                                }
-                                else
-                                {
-                                    return new ResponseModel
-                                    {
-                                        success = false,
-                                        message = "Database error. There were no rows affected while saving the report to drafts."
-                                    };
-                                }
-                            }
-                            else if (impressionParams.resulttag.ToUpper().Equals("F"))
-                            {
+1. Navigate to the API directory:
+   ```bash
+   cd api
+   ```
 
-                                int isSaveDraft = con.Execute(
-                                   $@"update `radresult` set resulttag=@resulttag, resultdesc = @resultdesc,finaluser=@user, resultdate=now() where radresultno = @radresultno",
-                                   impressionParams, transaction: tran);
+2. Restore dependencies:
+   ```bash
+   dotnet restore
+   ```
 
-                                if (isSaveDraft == 1)
-                                {
-                                    tran.Commit();
-                                    con.Close();
-                                    return new ResponseModel
-                                    {
-                                        success = true,
-                                        message = "The radiology study report has been successfully saved as final."
-                                    };
-                                }
-                                else
-                                {
-                                    return new ResponseModel
-                                    {
-                                        success = false,
-                                        message = "Database error. There were no rows affected while saving the report as final."
-                                    };
-                                }
-                            }
-                            else
-                            {
-                                return new ResponseModel
-                                {
-                                    success = false,
-                                    message = "Request error. Only study tags 'Draft' or 'Final' are accepted to be altered."
-                                };
-                            }
-                        }
-                        else
-                        {
-                            return new ResponseModel
-                            {
-                                success = false,
-                                message = "The study you have selected is no longer editable."
-                            };
-                        }
+3. Configure database connection in `appsettings.json`
 
+4. Run the API:
+   ```bash
+   dotnet run
+   ```
 
+The API will be available at `https://localhost:44341`
 
+### Frontend Setup
 
-                    }
+1. Navigate to the client directory:
+   ```bash
+   cd client
+   ```
 
-                    catch (Exception e)
-                    {
-                        return new ResponseModel
-                        {
-                            success = false,
-                            message = $"Internal server error has occured. {e.Message.ToString()}"
-                        };
-                    }
-                }
-            }
-        }
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
+3. Configure environment variables in `.env`
 
-    "react-rte": "git+https://github.com/sstur/react-rte.git#8c81622706a5f8856d39497bf33f92a97e9664fc",
-    "@types/react-rte": "^0.16.1",
+4. Start the development server:
+   ```bash
+   npm start
+   ```
 
-RtfPipe
+The client will be available at `http://localhost:3000`
+
+## Configuration
+
+### Database Configuration
+Update the connection string in `api/appsettings.json`:
+```json
+{
+  "ConnectionStrings": {
+    "MySqlConnection": "Data Source=server;port=3309;Initial Catalog=database;User Id=username;password=password;SslMode=none;"
+  }
+}
+```
+
+### FTP Configuration
+Configure FTP settings for medical imaging file management:
+```json
+{
+  "FTP": {
+    "ip": "ftp-server-ip",
+    "user": "username",
+    "pass": "password",
+    "base_url": "RADSYNC"
+  }
+}
+```
+
+## Development
+
+### Available Scripts
+
+#### Backend
+- `dotnet run` - Start the development server
+- `dotnet build` - Build the project
+- `dotnet test` - Run tests
+
+#### Frontend
+- `npm start` - Start development server
+- `npm build` - Build for production
+- `npm test` - Run tests
+- `npm run eject` - Eject from Create React App
+
+## Security Features
+
+- JWT-based authentication
+- Role-based access control
+- Secure API endpoints
+- CORS configuration
+- Input validation and sanitization
+
+## Integration
+
+The system is designed to integrate with:
+- PACS (Picture Archiving and Communication System)
+- RIS (Radiology Information System)
+- External radiology viewers
+- FTP servers for medical imaging
+
+## License
+
+This project is proprietary software developed for healthcare facilities.
+
+## Support
+
+For technical support and questions, please contact the development team.
