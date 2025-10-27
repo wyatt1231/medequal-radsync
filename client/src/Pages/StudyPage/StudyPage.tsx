@@ -47,7 +47,17 @@ const columns: GridColDef<StudyDto>[] = [
             className="link"
             variant="subtitle2"
           >
-            <NavLink to={`/study/${row.radresultno}`} target="'_blank'">
+            <NavLink
+              to={`/study/${row.radresultno}`}
+              target="_blank"
+              onClick={() => {
+                if (row?.study_link) {
+                  setTimeout(() => {
+                    window.open(row.study_link, "_blank");
+                  }, 500);
+                }
+              }}
+            >
               {row?.radresultno}
             </NavLink>
           </Typography>
@@ -139,7 +149,7 @@ const columns: GridColDef<StudyDto>[] = [
     editable: false,
     flex: 2,
   },
-   {
+  {
     field: "readerdoc",
     headerName: "Assigned Doctor",
     editable: false,
@@ -148,7 +158,7 @@ const columns: GridColDef<StudyDto>[] = [
 ];
 
 const initial_filter: StudyFilterDto = {
-  days_ago: 1,
+  days_ago: 0,
   patient_no: ``,
   patient_name: ``,
   hospital_no: ``,
