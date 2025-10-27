@@ -50,11 +50,11 @@ const columns: GridColDef<StudyDto>[] = [
             <NavLink
               to={`/study/${row.radresultno}`}
               target="_blank"
-              onClick={() => {
+              onClick={(e) => {
                 if (row?.study_link) {
-                  setTimeout(() => {
-                    window.open(row.study_link, "_blank");
-                  }, 500);
+                  e.preventDefault();
+                  window.open(`/study/${row.radresultno}`, "_blank");
+                  window.open(row.study_link, "_blank");
                 }
               }}
             >
