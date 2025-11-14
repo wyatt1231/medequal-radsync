@@ -188,7 +188,7 @@ namespace radsync_server.Repositories
             List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, filter, transaction: transaction)).ToList();
 
             // Add study_link to each study
-            string accession_link = configuration[Constants.ACCESSION_LINK];
+            string accession_link = configuration[Constants.PREV_STUDY_LINK];
             foreach (var study in data)
             {
                 string result_no = study.radresultno;
@@ -197,7 +197,7 @@ namespace radsync_server.Repositories
                     result_no = result_no.Replace("R", "");
                 }
 
-                study.study_link = accession_link + result_no;
+                study.study_link = accession_link + study.hospitalno;
 
                 if (!env.IsProduction())
                 {
