@@ -453,9 +453,17 @@ namespace radsync_server.Repositories
                                $@"update trandtls  set done = 'Y' where resultno = @radresultno and csno = @csno;",
                                new { study_result_entity.radresultno, study_result_entity.csno }, transaction: transaction);
 
-                await con.ExecuteAsync(
-                              $@"insert  into radresultdoc  set radresultno = @radresultno, doccode  = @doccode;",
+                // Check if radresultdoc entry already exists before inserting
+                int existingRecord = await con.QuerySingleOrDefaultAsync<int>(
+                              $@"SELECT COUNT(*) FROM radresultdoc WHERE radresultno = @radresultno AND doccode = @doccode;",
                               new { study_result_entity.radresultno, doccode = docCode }, transaction: transaction);
+
+                if (existingRecord == 0)
+                {
+                    await con.ExecuteAsync(
+                              $@"INSERT INTO radresultdoc SET radresultno = @radresultno, doccode = @doccode;",
+                              new { study_result_entity.radresultno, doccode = docCode }, transaction: transaction);
+                }
             }
 
             return study;
