@@ -52,6 +52,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const [loading_study_impression, set_loading_study_impression] = useState(false);
   const [height, set_height] = useState(800);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [iframeError, setIframeError] = useState(false);
 
   const onSubmitTemplate = async (form_type: FormType, payload: StudyTemplateDto) => {
     if (form_type === `ADD`) {
@@ -550,26 +551,54 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                           gridAutoRows: `46px 1fr`,
                         }}
                       >
-                        <iframe
-                          ref={iframeRef}
-                          src={is_view_by_hospital_no ? study_patient?.prev_study_link : study?.study_link}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            border: "none",
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                          }}
-                          title="Embedded Content"
-                          scrolling="no"
-                          frameBorder={0}
-                        >
-                          Your browser doesnot support iframes
-                          <a href={is_view_by_hospital_no ? study_patient?.prev_study_link : study?.study_link}>
-                            click here to view the image directly.
-                          </a>
-                        </iframe>
+                        {iframeError ? (
+                          <Box
+                            display="flex"
+                            flexDirection="column"
+                            justifyContent="center"
+                            alignItems="center"
+                            style={{ height: "100%", color: "white", textAlign: "center", padding: "2em" }}
+                          >
+                            <Typography variant="h6" gutterBottom>
+                              Unable to load viewer in iframe
+                            </Typography>
+                            <Typography variant="body2" gutterBottom>
+                              The viewer cannot be displayed due to browser security restrictions.
+                            </Typography>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              startIcon={<OpenInNewIcon />}
+                              onClick={onClickOpenLinkNewWindow}
+                              style={{ marginTop: "1em" }}
+                            >
+                              Open in New Window
+                            </Button>
+                          </Box>
+                        ) : (
+                          <iframe
+                            ref={iframeRef}
+                            src={is_view_by_hospital_no ? study_patient?.prev_study_link : study?.study_link}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              border: "none",
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                            }}
+                            title="Embedded Content"
+                            scrolling="no"
+                            frameBorder={0}
+                            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-downloads"
+                            onError={() => setIframeError(true)}
+                          >
+                            Your browser doesnot support iframes
+                            <a href={is_view_by_hospital_no ? study_patient?.prev_study_link : study?.study_link}>
+                              click here to view the image directly.
+                            </a>
+                          </iframe>
+                        )}
                       </div>
                     </Paper>
                   )}
