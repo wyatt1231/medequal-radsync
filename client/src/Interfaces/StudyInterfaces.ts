@@ -37,6 +37,7 @@ export interface StudyTemplateDto {
   templatekey?: string;
   templatedesc?: string;
   templatedeschtml?: string;
+  tempmodality?: string;
   font_size?: string;
 }
 

@@ -152,42 +152,59 @@ namespace radsync_server.Repositories
 
 
             bool is_doctor = UserConfig.IsDoctor(user.user_type);
+            bool isShowAll = !(filter.days_ago >= 0);
             string docCode = await GetDoctorCode(user);
 
 
-            string sql_query = $@"SELECT * FROM 
-                                        (SELECT 
-                                        CASE WHEN rd.resulttag='C' THEN 'CHARGE' WHEN rd.resulttag='D' THEN 'DRAFT' 
-                                        WHEN rd.resulttag='F' THEN 'FINAL' WHEN rd.resulttag='P' THEN 'PERFORMED' 
-                                        WHEN rd.resulttag='R' THEN 'REVOKED' WHEN rd.resulttag='M' THEN 'CREDIT MEMO' 
+            string sql_query = $@"SELECT * FROM
+                                        (SELECT
+                                        CASE WHEN rd.resulttag='C' THEN 'CHARGE' WHEN rd.resulttag='D' THEN 'DRAFT'
+                                        WHEN rd.resulttag='F' THEN 'FINAL' WHEN rd.resulttag='P' THEN 'PERFORMED'
+                                        WHEN rd.resulttag='R' THEN 'REVOKED' WHEN rd.resulttag='M' THEN 'CREDIT MEMO'
                                         WHEN rd.resulttag='V' THEN 'RECEIVED' WHEN rd.resulttag='T' THEN 'PRINTED' ELSE 'SCHEDULE' END resulttag
-                                        ,rd.hospitalno 
-                                        ,rd.patrefno,CONCAT(pat.lastname,', ',pat.firstname,' ',pat.suffix,' ',pat.middlename) AS patientname 
-                                        ,DATE_FORMAT(birthdate,'%Y-%m-%d') AS dob,pat.sex 
-                                        ,radresultno, DATE_FORMAT(rd.dateencoded, '%Y-%m-%dT%H:%i:%s')  AS studydate 
-                                        ,procdesc,urgency,modality,COALESCE(dm.doc_name,'') referringdoc  
+                                        ,rd.hospitalno
+                                        ,rd.patrefno,CONCAT(pat.lastname,', ',pat.firstname,' ',pat.suffix,' ',pat.middlename) AS patientname
+                                        ,DATE_FORMAT(birthdate,'%Y-%m-%d') AS dob,pat.sex
+                                        ,radresultno, DATE_FORMAT(rd.dateencoded, '%Y-%m-%dT%H:%i:%s')  AS studydate
+                                        ,procdesc,urgency,modality,COALESCE(dm.doc_name,'') referringdoc
                                         ,IF(TRIM(address)='',completeaddress, CONCAT(TRIM(address),', ',completeaddress)) address
                                         ,if(rd.pattype = 'I', 'Admitted OP', if(rd.pattype = 'O', 'OP Current', if(rd.pattype = 'C', 'Cash Current', ''))) patient_type
-                                        ,rd.dateencoded
-                                        FROM radresult rd 
-                                        LEFT JOIN prochdr ph ON ph.proccode=rd.refcode 
-                                        LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode 
-                                        LEFT JOIN patmaster pat ON pat.hospitalno=rd.hospitalno 
-                                        LEFT JOIN department d ON d.deptcode=chargedept 
-                                        LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay 
-                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')  {(!is_doctor ? "" : " AND rd.readerdoc = '" + docCode + "'")}
-                                        ) 
-                                    AS studies 
+                                        ,rd.dateencoded, COALESCE(vrd.doc_name,'') readerdoc
+                                        FROM radresult rd
+                                        LEFT JOIN prochdr ph ON ph.proccode=rd.refcode
+                                        LEFT JOIN vw_requestingdoctor dm ON dm.doccode=rd.reqdoccode
+                                        LEFT JOIN patmaster pat ON pat.hospitalno=rd.hospitalno
+                                        LEFT JOIN department d ON d.deptcode=chargedept
+                                        LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay
+                                        left join vw_requestingdoctor vrd on vrd.doccode  = rd.readerdoc
+                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')   {((!is_doctor || isShowAll) ? "" : " AND rd.readerdoc = '" + docCode + "'")}
+                                        )
+                                    AS studies
                                     {filters}
                                     {QuerySort(paging.sort)} LIMIT {paging.size} OFFSET {((paging.page > 0 ? paging.page - 1 : 0) * paging.size)}
                                 ";
 
-            /*
-             page=1
-            size=100
-             */
 
             List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, filter, transaction: transaction)).ToList();
+
+            // Add study_link to each study
+            string accession_link = configuration[Constants.PREV_STUDY_LINK];
+            foreach (var study in data)
+            {
+                string result_no = study.radresultno;
+                if (result_no.Contains("R"))
+                {
+                    result_no = result_no.Replace("R", "");
+                }
+
+                study.study_link = accession_link + study.hospitalno;
+
+                if (!env.IsProduction())
+                {
+                    study.study_link = accession_link + "250004605";
+                }
+            }
+
             return data;
         }
 
@@ -512,7 +529,7 @@ namespace radsync_server.Repositories
             string docCode = await GetDoctorCode(user);
 
             List<StudyTemplateDto> templates = (await con.QueryAsync<StudyTemplateDto>($@"
-                                                        select r.templateno, r.templatekey , r.templatedesc  from resulttemplate r  
+                                                        select r.templateno, r.templatekey , r.templatedesc, r.tempmodality from resulttemplate r  
                                                          {(UserConfig.IsDoctor(user.user_type) ? $"WHERE r.tempdoccode = @doccode" : "")}
                                             ", new { doccode = docCode }, transaction: transaction)).ToList();
 

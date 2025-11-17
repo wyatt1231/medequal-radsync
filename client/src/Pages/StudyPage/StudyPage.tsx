@@ -47,7 +47,17 @@ const columns: GridColDef<StudyDto>[] = [
             className="link"
             variant="subtitle2"
           >
-            <NavLink to={`/study/${row.radresultno}`} target="'_blank'">
+            <NavLink
+              to={`/study/${row.radresultno}`}
+              target="_blank"
+              onClick={(e) => {
+                if (row?.study_link) {
+                  e.preventDefault();
+                  window.open(`/study/${row.radresultno}`, "_blank");
+                  window.open(row.study_link, "_blank");
+                }
+              }}
+            >
               {row?.radresultno}
             </NavLink>
           </Typography>
@@ -139,10 +149,16 @@ const columns: GridColDef<StudyDto>[] = [
     editable: false,
     flex: 2,
   },
+  {
+    field: "readerdoc",
+    headerName: "Assigned Doctor",
+    editable: false,
+    flex: 2,
+  },
 ];
 
 const initial_filter: StudyFilterDto = {
-  days_ago: 1,
+  days_ago: 0,
   patient_no: ``,
   patient_name: ``,
   hospital_no: ``,
@@ -689,7 +705,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                       },
                     });
                   }}
-                  page={study_paging.page}
+                  page={Math.min(study_paging.page, Math.max(0, Math.ceil((studys?.length ?? 0) / study_paging.size) - 1))}
                   pagination
                 />
               </div>
