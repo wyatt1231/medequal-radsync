@@ -65,5 +65,27 @@ namespace radsync_server.Controllers
             }
 
         }
+
+        [HttpGet("modality")]
+        [Authorize]
+        public async Task<IActionResult> GetModalityMap()
+        {
+            try
+            {
+                List<GetLibraryDto> data = await _lib_repo.GetModalityMap();
+                return Ok(data);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorDto()
+                {
+                    code = 500,
+                    title = "Internal server error has occured",
+                    type = "",
+                    detail = e.Message,
+                });
+            }
+
+        }
     }
 }

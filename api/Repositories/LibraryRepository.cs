@@ -55,5 +55,14 @@ namespace radsync_server.Repositories
             return data;
         }
 
+        public async Task<List<GetLibraryDto>> GetModalityMap()
+        {
+            using MySqlConnection con = new MySqlConnection(configuration.GetConnectionString(Constants.MYSQL_CONNECTION));
+            await con.OpenAsync();
+            using var tran = await con.BeginTransactionAsync();
+            string sql_query = @"SELECT modality AS id, modality AS label FROM radmodalitymap";
+            List<GetLibraryDto> data = (await con.QueryAsync<GetLibraryDto>(sql_query, null, transaction: tran)).ToList();
+            return data;
+        }
     }
 }

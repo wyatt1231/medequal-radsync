@@ -119,6 +119,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
           ),
           BodyComponent: (
             <StudyManageTemplate
+              modality={study?.modality}
               set_font_size={set_font_size}
               set_rtf_impression={set_rtf_impression}
               onSubmitTemplate={onSubmitTemplate}

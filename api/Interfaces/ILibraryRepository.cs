@@ -8,5 +8,6 @@ namespace radsync_server.Interfaces
     {
         Task<List<GetLibraryDto>> GetMedLib();
         Task<List<GetLibraryDto>> GetFreqLib();
+        Task<List<GetLibraryDto>> GetModalityMap();
     }
 }

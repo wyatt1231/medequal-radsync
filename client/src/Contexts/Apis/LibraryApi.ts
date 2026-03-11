@@ -18,9 +18,17 @@ const GetFreqLibApi = async (): Promise<Array<GetLibraryDto>> => {
   return response.data;
 };
 
+const GetModalityMapApi = async (): Promise<Array<GetLibraryDto>> => {
+  const response = await Axios.get(SERVER_URL + BASE + `modality`, {
+    headers: FetchFormDataHeader,
+  });
+  return response.data;
+};
+
 const LibraryApi = {
   GetMedLibApi,
   GetFreqLibApi,
+  GetModalityMapApi,
 };
 
 export default LibraryApi;
