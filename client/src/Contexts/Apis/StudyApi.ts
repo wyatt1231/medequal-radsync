@@ -56,9 +56,7 @@ const UnverifyStudyImpression = async (radresultno: string): Promise<StudyDto> =
 //#region TEMPLATE
 
 const GetStudyTemplates = async (): Promise<StudyTemplateDto[]> => {
-  const response = await Axios.get(SERVER_URL + BASE_URL + `/template`, {
-    headers: FetchJsonHeader,
-  });
+  const response = await Axios.get(SERVER_URL + BASE_URL + `/template`, { headers: FetchJsonHeader });
   return response.data;
 };
 

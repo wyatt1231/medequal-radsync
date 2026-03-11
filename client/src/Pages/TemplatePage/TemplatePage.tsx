@@ -153,7 +153,7 @@ const TemplatePage: FC<TemplatePageProps> = memo(() => {
   };
 
   useEffect(() => {
-    dispatch(StudyActions.SetStudyTemplates(null, setIsLoadingTable));
+    dispatch(StudyActions.SetStudyTemplates(undefined, setIsLoadingTable));
   }, [dispatch, setIsLoadingTable]);
 
   useEffect(() => {

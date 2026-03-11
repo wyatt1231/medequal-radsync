@@ -1,12 +1,15 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Grid } from "@mui/material";
-import { FC, memo, useEffect } from "react";
+import { FC, memo, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import * as yup from "yup";
+import AutocompleteHookForm from "../../Components/HookForm/AutoCompleteHookForm";
 import RtfHookForm from "../../Components/HookForm/RtfHookForm";
 import TextFieldHookForm from "../../Components/HookForm/TextFieldHookForm";
+import LibraryApi from "../../Contexts/Apis/LibraryApi";
 import { FormType } from "../../Contexts/Types/FormTypes";
+import { GetLibraryDto } from "../../Interfaces/LibraryInterfaces";
 import { StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
 import StringUtil from "../../Utils/StringUtil";
 
@@ -23,6 +26,8 @@ const form_schema = yup.object<any>({
 
 const StudyManageTemplateForm: FC<StudyManageTemplateFormProps> = memo((props) => {
   const dispatch = useDispatch();
+  const [modality_list, setModalityList] = useState<GetLibraryDto[]>([]);
+  const [modality_loading, setModalityLoading] = useState(false);
 
   const form = useForm<StudyTemplateDto>({
     resolver: yupResolver(form_schema),
@@ -31,6 +36,7 @@ const StudyManageTemplateForm: FC<StudyManageTemplateFormProps> = memo((props) =
       templateno: ``,
       templatekey: "",
       templatedeschtml: "",
+      tempmodality: "",
     },
   });
 
@@ -46,13 +52,41 @@ const StudyManageTemplateForm: FC<StudyManageTemplateFormProps> = memo((props) =
   };
 
   useEffect(() => {
+    let active = true;
+
+    const fetchModalities = async () => {
+      setModalityLoading(true);
+      try {
+        const data = await LibraryApi.GetModalityMapApi();
+        if (active) setModalityList(data);
+      } catch {
+        // ignore
+      } finally {
+        if (active) setModalityLoading(false);
+      }
+    };
+
+    fetchModalities();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (props.form_type === `ADD`) {
-      form.reset();
+      form.reset({
+        templateno: ``,
+        templatekey: "",
+        templatedeschtml: "",
+        tempmodality: "",
+      });
     } else if (props.form_type === `EDIT`) {
       form.reset({
         templatekey: props.study_template?.templatekey ?? ``,
         templatedeschtml: props.study_template?.templatedeschtml ?? ``,
         templateno: props.study_template?.templateno ?? ``,
+        tempmodality: props.study_template?.tempmodality ?? ``,
       });
     }
 
@@ -79,6 +113,16 @@ const StudyManageTemplateForm: FC<StudyManageTemplateFormProps> = memo((props) =
                   variant="outlined"
                   fullWidth
                   required
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <AutocompleteHookForm
+                  name="tempmodality"
+                  label="Modality"
+                  variant="outlined"
+                  options={modality_loading ? undefined : modality_list}
+                  loading={modality_loading}
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>

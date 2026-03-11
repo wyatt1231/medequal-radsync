@@ -537,8 +537,9 @@ namespace radsync_server.Repositories
             string docCode = await GetDoctorCode(user);
 
             List<StudyTemplateDto> templates = (await con.QueryAsync<StudyTemplateDto>($@"
-                                                        select r.templateno, r.templatekey , r.templatedesc, r.tempmodality from resulttemplate r  
-                                                         {(UserConfig.IsDoctor(user.user_type) ? $"WHERE r.tempdoccode = @doccode" : "")}
+                                                        select r.templateno, r.templatekey , r.templatedesc, r.tempmodality from resulttemplate r
+                                                        WHERE 1=1
+                                                        {(UserConfig.IsDoctor(user.user_type) ? "AND r.tempdoccode = @doccode" : "")}
                                             ", new { doccode = docCode }, transaction: transaction)).ToList();
 
             foreach (var item in templates)
@@ -566,8 +567,8 @@ namespace radsync_server.Repositories
             study.templateno = total + "";
 
             await con.ExecuteAsync(
-                            $@"insert into resulttemplate set templateno=@templateno, tempdeptcode = '0004', templatekey = @templatekey,templatedesc = @templatedesc, 
-                                tempdoccode = '{docCode}', encodedby = '{user.username}', templatedate  = now(), dateencoded  = now();",
+                            $@"insert into resulttemplate set templateno=@templateno, tempdeptcode = '0004', templatekey = @templatekey, templatedesc = @templatedesc,
+                                tempmodality = @tempmodality, tempdoccode = '{docCode}', encodedby = '{user.username}', templatedate = now(), dateencoded = now();",
                             study, transaction: transaction);
 
             return study;
@@ -585,7 +586,7 @@ namespace radsync_server.Repositories
             study.user = docCode;
 
             await con.ExecuteAsync(
-                            $@"update resulttemplate set templatekey = @templatekey,templatedesc = @templatedesc where templateno=@templateno;",
+                            $@"update resulttemplate set templatekey = @templatekey, templatedesc = @templatedesc, tempmodality = @tempmodality where templateno=@templateno;",
                             study, transaction: transaction);
 
             return study;

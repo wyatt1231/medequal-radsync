@@ -2,8 +2,8 @@ import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import SwipeDownRoundedIcon from "@mui/icons-material/SwipeRounded";
 import { Box, Button, IconButton, useTheme } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { Dispatch, FC, memo, SetStateAction } from "react";
+import { DataGrid, GridColDef, GridFilterModel } from "@mui/x-data-grid";
+import { Dispatch, FC, memo, SetStateAction, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import PageActions from "../../Contexts/Actions/PageActions";
 import StudyActions from "../../Contexts/Actions/StudyActions";
@@ -14,16 +14,24 @@ import { StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
 import StringUtil from "../../Utils/StringUtil";
 import StudyManageTemplateAdd from "./StudyManageTemplateForm";
 interface StudyManageTemplateProps {
+  modality?: string;
   set_font_size: Dispatch<SetStateAction<string>>;
   set_rtf_impression: Dispatch<SetStateAction<string>>;
   onSubmitTemplate: (form_type: FormType, payload: StudyTemplateDto) => Promise<void>;
 }
 
-const StudyManageTemplate: FC<StudyManageTemplateProps> = memo(({ set_font_size, set_rtf_impression, onSubmitTemplate }) => {
+const StudyManageTemplate: FC<StudyManageTemplateProps> = memo(({ modality, set_font_size, set_rtf_impression, onSubmitTemplate }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
 
   const { study_impression, study_templates } = useSelector((store: RootStore) => store.StudyReducer);
+
+  const [filterModel, setFilterModel] = useState<GridFilterModel>(() => {
+    if (!modality) return { items: [] };
+    return {
+      items: [{ columnField: `tempmodality`, operatorValue: `equals`, value: modality }],
+    };
+  });
 
   const study_template_columns: GridColDef<StudyTemplateDto>[] = [
     {
@@ -155,6 +163,8 @@ const StudyManageTemplate: FC<StudyManageTemplateProps> = memo(({ set_font_size,
           columns={study_template_columns}
           loading={false}
           disableSelectionOnClick
+          filterModel={filterModel}
+          onFilterModelChange={(model) => setFilterModel(model)}
         />
       </Box>
     </>
