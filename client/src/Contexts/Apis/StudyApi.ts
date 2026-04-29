@@ -92,6 +92,13 @@ const GetStudyPrevs = async (payload: StudyDto): Promise<StudyDto[]> => {
   return response.data;
 };
 
+const GetStudyNexts = async (payload: StudyDto): Promise<StudyDto[]> => {
+  const response = await Axios.post(SERVER_URL + BASE_URL + `/nexts`, payload, {
+    headers: FetchJsonHeader,
+  });
+  return response.data;
+};
+
 //#endregion
 
 const StudyApi = {
@@ -106,6 +113,7 @@ const StudyApi = {
   UpdateStudyTemplate,
   DeleteStudyTemplate,
   GetStudyPrevs,
+  GetStudyNexts,
 };
 
 export default StudyApi;
