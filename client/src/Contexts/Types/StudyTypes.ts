@@ -25,6 +25,10 @@ export type StudyReducerTypes =
   | {
       type: "set_study_prevs";
       study_prevs?: StudyDto[];
+    }
+  | {
+      type: "set_study_nexts";
+      study_nexts?: StudyDto[];
     };
 
 export interface StudyReducerModel {
@@ -34,4 +38,5 @@ export interface StudyReducerModel {
   study_impression?: StudyDto;
   study_templates?: StudyTemplateDto[];
   study_prevs?: StudyDto[];
+  study_nexts?: StudyDto[];
 }

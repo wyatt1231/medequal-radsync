@@ -2,6 +2,7 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 // import PlaylistAddCircleIcon from "@mui/icons-material/PlaylistAddCheck";
+import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay";
 import PreviewIcon from "@mui/icons-material/Preview";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -21,6 +22,7 @@ import StringUtil from "../../Utils/StringUtil";
 import StudyManagePagePatientInfo from "./StudyManagePagePatientInfo";
 import StudyManageTemplate from "./StudyManageTemplate";
 import StudyManageTemplateForm from "./StudyManageTemplateForm";
+import StudyNextSideout from "./StudyNextSideout";
 import StudyPreviousSideout from "./StudyPreviousSideout";
 
 interface StudyManagePageProps {}
@@ -148,6 +150,34 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
           title: `Previous Results - ${study_patient.patientname}  | Current Procedure: ${study.proccode} | ${study.procdesc} |  ${study.urgency} `,
           width: `85vw`,
           BodyComponent: <StudyPreviousSideout></StudyPreviousSideout>,
+        })
+      );
+    } catch (error) {
+      dispatch(PageActions.SetHttpErrorPrompt(error));
+    }
+  };
+
+  const onClickOpenStudyNext = async (): Promise<void> => {
+    try {
+      dispatch(PageActions.SetLoading(true));
+      const nexts = await StudyApi.GetStudyNexts({
+        patrefno: study_patient?.patno,
+        radresultno: radresultno,
+      });
+
+      dispatch(StudyActions.SetStudyNexts(nexts));
+      dispatch(PageActions.SetLoading(false));
+
+      dispatch(
+        PageActions.PushPageSideout({
+          title: `Next Procedure - ${study_patient?.patientname ?? ""} | Current: ${study?.procdesc ?? ""}`,
+          width: `60vw`,
+          BodyComponent: (
+            <StudyNextSideout
+              currentRadresulthtml={rtf_impression}
+              loadedRadresulthtml={study_impression?.radresulthtml}
+            ></StudyNextSideout>
+          ),
         })
       );
     } catch (error) {
@@ -392,6 +422,17 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       alignItems={`center`}
                       alignContent={`center`}
                     >
+                      <Button
+                        variant="text"
+                        startIcon={<PlaylistPlayIcon />}
+                        color="primary"
+                        size={"small"}
+                        onClick={onClickOpenStudyNext}
+                        disabled={!study_patient?.patno}
+                        title="Jump to another performed procedure for this patient"
+                      >
+                        Next
+                      </Button>
                       <Button
                         variant="text"
                         startIcon={is_show_study ? <VisibilityOffIcon /> : <VisibilityIcon />}

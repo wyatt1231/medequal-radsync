@@ -102,6 +102,13 @@ const SetStudyPrevs = (study_prevs?: StudyDto[]) => async (dispatch: Dispatch<St
   console.log(`study_prevs`, study_prevs);
 };
 
+const SetStudyNexts = (study_nexts?: StudyDto[]) => async (dispatch: Dispatch<StudyReducerTypes | PageReducerTypes>) => {
+  dispatch({
+    type: "set_study_nexts",
+    study_nexts: study_nexts,
+  });
+};
+
 const StudyActions = {
   SetStudys,
   SetStudy,
@@ -109,6 +116,7 @@ const StudyActions = {
   SetStudyImpression,
   SetStudyTemplates,
   SetStudyPrevs,
+  SetStudyNexts,
 };
 
 export default StudyActions;

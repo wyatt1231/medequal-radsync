@@ -249,5 +249,30 @@ namespace radsync_server.Controllers
 
         #endregion
 
+        #region NEXT PROCEDURE
+
+        /// <summary>
+        /// Returns other performed procedures of the current patient admission so the Next Procedure
+        /// slideout can let radiologists jump between procedures without leaving the study viewer.
+        /// </summary>
+        [HttpPost("nexts")]
+        public async Task<ActionResult<List<StudyDto>>> GetStudyNexts([FromBody] StudyDto study)
+        {
+            await mysql_db_context.BeginTransactionAsync();
+
+            UserDto user = new UserDto()
+            {
+                username = User.Identity.Name,
+                user_type = UseClaims.PriorityRole((ClaimsIdentity)User.Identity)
+            };
+
+            var data = await study_repo.GetStudyNexts(user, study);
+
+            await mysql_db_context.CommitTransactionAsync();
+            return data;
+        }
+
+        #endregion
+
     }
 }
