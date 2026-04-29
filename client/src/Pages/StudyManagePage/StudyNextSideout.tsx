@@ -4,7 +4,6 @@ import { Box, Chip, Grid, IconButton, Paper, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { FC, memo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router";
 import PageActions from "../../Contexts/Actions/PageActions";
 import { RootStore } from "../../Contexts/Store";
 import { StudyDto } from "../../Interfaces/StudyInterfaces";
@@ -17,12 +16,11 @@ interface StudyNextSideoutProps {
 
 const StudyNextSideout: FC<StudyNextSideoutProps> = memo(({ currentRadresulthtml, loadedRadresulthtml }) => {
   const dispatch = useDispatch();
-  const history = useHistory();
   const { study_nexts } = useSelector((store: RootStore) => store.StudyReducer);
 
   const navigateToProcedure = (radresultno: string): void => {
     dispatch(PageActions.PopPageSideout());
-    history.push(`/study/${radresultno}`);
+    window.location.href = `/study/${radresultno}`;
   };
 
   const onClickGo = (row: StudyDto): void => {
