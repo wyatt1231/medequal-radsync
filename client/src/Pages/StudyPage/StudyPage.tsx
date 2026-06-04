@@ -1,9 +1,12 @@
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Box,
   Button,
   Checkbox,
   FormControl,
   Grid,
+  IconButton,
   InputLabel,
   ListItemText,
   MenuItem,
@@ -195,6 +198,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
   const [position, set_position] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
   const [is_loading_table, set_is_loading_table] = useState(false);
+  const [is_filter_expanded, set_is_filter_expanded] = useState(true);
   const [filter, set_filter] = useState<StudyFilterDto>(initial_filter);
 
   const { studys } = useSelector((store: RootStore) => store.StudyReducer);
@@ -235,7 +239,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
       const rect = divRef.current?.getBoundingClientRect();
       set_position({ top: rect.top, left: rect.left });
     }
-  }, []);
+  }, [is_filter_expanded]);
 
   useEffect(() => {
     dispatch(
@@ -264,13 +268,44 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
             dispatch(StudyActions.SetStudys(payload, setIsLoadingTable));
           }}
         >
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Typography component={"div"} className="form-separator">
-                Filter Options
-              </Typography>
-            </Grid>
-            <Grid item xs={4} md={3} lg={2}>
+          <Typography component={"div"} className="form-separator">
+            <Box display={`grid`} gridAutoColumns={`1fr auto`} gridAutoFlow={`column`} alignItems={`center`}>
+              <span>Filter Options</span>
+              <Box justifySelf={`end`}>
+                <IconButton
+                  title={is_filter_expanded ? "Click to Collapse" : "Click to Expand"}
+                  onClick={() => set_is_filter_expanded((prev) => !prev)}
+                  size={"small"}
+                >
+                  {is_filter_expanded ? (
+                    <ExpandLessIcon fontSize="small" color="primary" />
+                  ) : (
+                    <ExpandMoreIcon fontSize="small" color="primary" />
+                  )}
+                </IconButton>
+              </Box>
+            </Box>
+          </Typography>
+
+          {is_filter_expanded && (
+            <Box display={`flex`} gap={2} alignItems={`stretch`} mt={1}>
+            <Box
+              flexGrow={1}
+              display={`grid`}
+              gridTemplateColumns={{
+                xs: `repeat(2, 1fr)`,
+                sm: `repeat(4, 1fr)`,
+                lg: `repeat(7, 1fr)`,
+              }}
+              columnGap={2}
+              rowGap={1}
+              sx={{
+                "& .MuiInputBase-input": { fontSize: `0.72rem` },
+                "& .MuiInputBase-root": { fontSize: `0.72rem` },
+                "& .MuiInputLabel-root": { fontSize: `0.72rem` },
+                "& .MuiSelect-select": { fontSize: `0.72rem` },
+              }}
+            >
               <TextField
                 label="Show Results Since"
                 select
@@ -306,9 +341,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   <span>All</span>
                 </MenuItem>
               </TextField>
-            </Grid>
 
-            <Grid item xs={4} md={3} lg={2}>
               <TextField
                 label="Hospital No."
                 size="small"
@@ -325,9 +358,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   });
                 }}
               ></TextField>
-            </Grid>
 
-            <Grid item xs={4} md={3} lg={2}>
               <TextField
                 label="Patient Name"
                 size="small"
@@ -344,9 +375,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   });
                 }}
               ></TextField>
-            </Grid>
 
-            <Grid item xs={4} md={3} lg={2}>
               <TextField
                 label="Patient No."
                 size="small"
@@ -363,9 +392,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   });
                 }}
               ></TextField>
-            </Grid>
 
-            <Grid item xs={4} md={3} lg={2}>
               <TextField
                 label="Referring Physician"
                 size="small"
@@ -382,11 +409,9 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   });
                 }}
               ></TextField>
-            </Grid>
 
-            <Grid item xs={4} md={3} lg={2}>
               <TextField
-                label="Study Date (From)"
+                label="Study Date From"
                 size="small"
                 fullWidth
                 variant="standard"
@@ -402,11 +427,9 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   });
                 }}
               ></TextField>
-            </Grid>
 
-            <Grid item xs={4} md={3} lg={2}>
               <TextField
-                label="Study Date (To)"
+                label="Study Date To"
                 size="small"
                 fullWidth
                 variant="standard"
@@ -422,9 +445,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   });
                 }}
               ></TextField>
-            </Grid>
 
-            <Grid item xs={4} md={3} lg={2}>
               <TextField
                 label="Accession No"
                 size="small"
@@ -441,9 +462,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   });
                 }}
               ></TextField>
-            </Grid>
 
-            <Grid item xs={4} md={3} lg={2}>
               <TextField
                 label="Study Description"
                 size="small"
@@ -460,9 +479,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   });
                 }}
               ></TextField>
-            </Grid>
 
-            <Grid item xs={8} md={6} lg={4}>
               <FormControl sx={{ width: `100%` }}>
                 <InputLabel id="demo-multiple-checkbox-label" shrink variant="standard">
                   Urgency
@@ -492,9 +509,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
 
-            <Grid item xs={8} md={6} lg={4}>
               <FormControl sx={{ width: `100%` }}>
                 <InputLabel id="demo-multiple-checkbox-label" shrink variant="standard">
                   Modality
@@ -524,9 +539,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
 
-            <Grid item xs={8} md={6} lg={4}>
               <FormControl sx={{ width: `100%` }}>
                 <InputLabel id="demo-multiple-checkbox-label" shrink variant="standard">
                   Status
@@ -556,9 +569,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
 
-            <Grid item xs={8} md={6} lg={4}>
               <FormControl sx={{ width: `100%` }}>
                 <InputLabel id="demo-multiple-checkbox-label" shrink variant="standard">
                   Patient Type
@@ -588,54 +599,37 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
+            </Box>
 
-            {/*  */}
-            <Grid item xs={12}>
-              <Box
-                display={`grid`}
-                gridAutoFlow={`column`}
-                gap={`1em`}
-                justifyContent={`end`}
-                justifyItems={`end`}
-                alignItems={`center`}
-                alignContent={`center`}
+            <Box
+              display={`flex`}
+              flexDirection={`column`}
+              justifyContent={`space-between`}
+              minWidth={96}
+            >
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                onClick={() => {
+                  set_filter(initial_filter);
+                  const payload: PagingDto = {
+                    ...study_paging,
+                    other_filters: JSON.stringify(initial_filter),
+                  };
+
+                  dispatch(StudyActions.SetStudys(payload, setIsLoadingTable));
+                }}
               >
-                <Button
-                  variant="contained"
-                  color="warning"
-                  // startIcon={is_show_study ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  onClick={() => {
-                    set_filter(initial_filter);
-                    const payload: PagingDto = {
-                      ...study_paging,
-                      other_filters: JSON.stringify(initial_filter),
-                    };
+                Clear
+              </Button>
 
-                    dispatch(StudyActions.SetStudys(payload, setIsLoadingTable));
-                  }}
-                >
-                  Clear
-                </Button>
-
-                <Button
-                  variant="contained"
-                  color="primary"
-                  type="submit"
-                  // onClick={() => {
-                  //   const payload: PagingDto = {
-                  //     ...study_paging,
-                  //     other_filters: JSON.stringify(filter),
-                  //   };
-
-                  //   dispatch(StudyActions.SetStudys(payload, setIsLoadingTable));
-                  // }}
-                >
-                  Search
-                </Button>
-              </Box>
-            </Grid>
-          </Grid>
+              <Button variant="contained" color="primary" size="small" type="submit">
+                Search
+              </Button>
+            </Box>
+          </Box>
+          )}
         </Paper>
       </Grid>
       <Grid item xs={12}>
@@ -645,16 +639,7 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
             padding: `1em`,
           }}
         >
-          <Grid container spacing={2}>
-            {/* <Grid container rowSpacing={2} columnSpacing={2}> */}
-
-            <Grid item xs={12}>
-              <Typography component={"div"} className="form-separator">
-                Results
-              </Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <div style={{ height: `calc(100vh - ${position.top + 140}px)`, width: "100%" }}>
+          <div style={{ height: `calc(100vh - ${position.top + 70}px)`, width: "100%" }}>
                 <DataGrid
                   getRowId={(p) => p.radresultno}
                   density="compact"
@@ -709,8 +694,6 @@ const StudyPage: FC<StudyPageProps> = memo(() => {
                   pagination
                 />
               </div>
-            </Grid>
-          </Grid>
         </Paper>
       </Grid>
     </Grid>

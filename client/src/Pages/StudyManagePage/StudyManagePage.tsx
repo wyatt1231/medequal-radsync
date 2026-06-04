@@ -53,7 +53,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
   const [loading_study_patient, set_loading_study_patient] = useState(false);
   const [loading_study_impression, set_loading_study_impression] = useState(false);
   const [height, set_height] = useState(800);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [iframeError, setIframeError] = useState(false);
 
   const onSubmitTemplate = async (form_type: FormType, payload: StudyTemplateDto) => {
