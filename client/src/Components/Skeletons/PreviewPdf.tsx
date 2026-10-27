@@ -29,8 +29,6 @@ const PreviewPDF: FC<IPreviewPDF> = memo(
       };
     }, []);
 
-    console.log(`files`, files);
-
     return (
       <div>
         <StyledPdfPreview theme={theme} open={true}>

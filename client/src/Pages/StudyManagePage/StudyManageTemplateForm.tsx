@@ -11,7 +11,6 @@ import LibraryApi from "../../Contexts/Apis/LibraryApi";
 import { FormType } from "../../Contexts/Types/FormTypes";
 import { GetLibraryDto } from "../../Interfaces/LibraryInterfaces";
 import { StudyTemplateDto } from "../../Interfaces/StudyInterfaces";
-import StringUtil from "../../Utils/StringUtil";
 
 interface StudyManageTemplateFormProps {
   form_type: FormType;
@@ -41,13 +40,6 @@ const StudyManageTemplateForm: FC<StudyManageTemplateFormProps> = memo((props) =
   });
 
   const handleSubmitForm = async (data: StudyTemplateDto) => {
-    console.log(`data`, data);
-
-    data = {
-      ...data,
-      templatedesc: StringUtil.HtmlToRtf(data.templatedeschtml),
-    };
-
     await props.onSubmit(props.form_type, data);
   };
 
@@ -132,7 +124,6 @@ const StudyManageTemplateForm: FC<StudyManageTemplateFormProps> = memo((props) =
                   label="Impression"
                   required
                   height="500px"
-                  font_size={props.study_template?.font_size ?? `11pt`}
                 />
               </Grid>
             </Grid>

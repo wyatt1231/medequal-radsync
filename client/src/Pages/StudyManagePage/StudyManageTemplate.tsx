@@ -15,12 +15,11 @@ import StringUtil from "../../Utils/StringUtil";
 import StudyManageTemplateAdd from "./StudyManageTemplateForm";
 interface StudyManageTemplateProps {
   modality?: string;
-  set_font_size: Dispatch<SetStateAction<string>>;
   set_rtf_impression: Dispatch<SetStateAction<string>>;
   onSubmitTemplate: (form_type: FormType, payload: StudyTemplateDto) => Promise<void>;
 }
 
-const StudyManageTemplate: FC<StudyManageTemplateProps> = memo(({ modality, set_font_size, set_rtf_impression, onSubmitTemplate }) => {
+const StudyManageTemplate: FC<StudyManageTemplateProps> = memo(({ modality, set_rtf_impression, onSubmitTemplate }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
 
@@ -77,7 +76,6 @@ const StudyManageTemplate: FC<StudyManageTemplateProps> = memo(({ modality, set_
                           open: true,
                           custom_title: `Are you sure that you want to use this template in this result?`,
                           continueCallback: async () => {
-                            set_font_size(row.font_size ?? `11pt`);
                             set_rtf_impression(row.templatedeschtml);
 
                             dispatch(PageActions.SetPrompt(`The study template has been used to this study!`, `success`));

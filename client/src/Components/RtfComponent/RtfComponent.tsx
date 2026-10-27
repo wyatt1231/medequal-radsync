@@ -1,41 +1,23 @@
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import { Box, Button, IconButton, MenuItem, TextField } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
-import ReactQuill, { Quill } from "react-quill"; // Import ReactQuill component
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import ReactQuill from "react-quill"; // Import ReactQuill component
 import "react-quill/dist/quill.snow.css"; // Import Quill's styles
 import { v4 } from "uuid";
 
 import RtfComponentUi from "./RtfComponentUi";
+import {
+  DEFAULT_FONT_SIZE,
+  FONT_SIZES,
+  INDENT_STEP_PT,
+  keepFirstLineIndent,
+  NEW_REPORT_FONT_SIZE,
+  registerRtfFormats,
+  RTF_FORMATS,
+} from "./RtfQuillSetup";
 
-const setUpQuill = function SetupQuill() {
-  var DirectionAttribute: any = Quill.import("attributors/attribute/direction");
-  Quill.register(DirectionAttribute, true);
-
-  var BackgroundClass: any = Quill.import("attributors/class/background");
-  Quill.register(BackgroundClass, true);
-  var ColorClass: any = Quill.import("attributors/class/color");
-  Quill.register(ColorClass, true);
-  var DirectionClass: any = Quill.import("attributors/class/direction");
-  Quill.register(DirectionClass, true);
-  var FontClass: any = Quill.import("attributors/class/font");
-  Quill.register(FontClass, true);
-  var SizeClass: any = Quill.import("attributors/class/size");
-  Quill.register(SizeClass, true);
-
-  var Block: any = Quill.import(`blots/block`);
-  Block.tagName = `p`;
-  Quill.register(Block);
-
-  var SizeStyle: any = Quill.import("attributors/style/size");
-  const fontSizeArr = ["8pt", "9pt", "10pt", "11pt", "12pt"];
-  SizeStyle.whitelist = fontSizeArr;
-  Quill.register(SizeStyle, true);
-};
-
-setUpQuill();
-
-export const formats = ["bold", "italic", "underline", "size"];
+registerRtfFormats();
 
 export interface RtfActionButtons {
   label: string;
@@ -49,25 +31,23 @@ type RtfComponentProps = {
   read_only?: boolean;
   height?: string;
   onChange?: (value: string) => void;
-  font_size?: string;
-  set_font_size?: React.Dispatch<React.SetStateAction<string>>;
   actions?: RtfActionButtons[];
 };
 
-const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only, height, font_size, set_font_size, ...props }) => {
-  const ref_editor = useRef(null);
+const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only, height, ...props }) => {
+  const ref_editor = useRef<ReactQuill>(null);
   const ref_container = useRef(null);
 
-  const [toolbar_id, set_toolbar_id] = useState(`rtf-toolbar-${v4()}`);
+  const [toolbar_id] = useState(`rtf-toolbar-${v4()}`);
 
   const [is_full_screen, set_is_full_screen] = useState(false);
+  const [selection_font_size, set_selection_font_size] = useState(DEFAULT_FONT_SIZE);
 
   const onClickFullScreen = (): void => {
     if (is_full_screen) {
       set_is_full_screen(false);
       document
         .exitFullscreen()
-        .then(() => console.log("Exited fullscreen"))
         .catch((err) => console.error("Error exiting fullscreen:", err));
     } else {
       set_is_full_screen(true);
@@ -85,21 +65,65 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
     }
   };
 
-  const onSetFontSize = (value) => {
-    const font_size = value;
-    !!set_font_size && set_font_size(font_size);
-    if (ref_editor.current) {
-      const quill = ref_editor.current.getEditor();
-      quill.formatText(0, quill.getLength(), "size", font_size);
-    }
+  const onSetFontSize = (font_size: string): void => {
+    const quill = ref_editor.current?.getEditor();
+    if (!quill) return;
+    quill.getSelection(true);
+    quill.format("size", font_size === DEFAULT_FONT_SIZE ? false : font_size, "user");
+    set_selection_font_size(font_size);
   };
 
   // Handle change in the Quill editor content
-  const handleChange = (content: string) => {
+  const handleChange = (content: string): void => {
     onChange && onChange(content);
   };
 
-  // Optional: You can define Quill configurations here
+  const modules = useMemo(
+    () => ({
+      toolbar: {
+        container: `#` + toolbar_id,
+        handlers: {
+          indent: (direction: string): void => {
+            const quill = ref_editor.current?.getEditor();
+            const range = quill?.getSelection(true);
+            if (!quill || !range) return;
+
+            const step = direction === "-1" ? -INDENT_STEP_PT : INDENT_STEP_PT;
+            // getLines() visits nothing for a collapsed caret, so fall back to the caret's own line.
+            const lines = range.length > 0 ? quill.getLines(range.index, range.length) : [quill.getLine(range.index)[0]];
+            lines.forEach((line) => {
+              const current = parseFloat(line.formats().leftindent ?? "0") || 0;
+              const next = Math.max(0, current + step);
+              quill.formatLine(quill.getIndex(line), 1, "leftindent", next > 0 ? `${next}pt` : false, "user");
+            });
+          },
+        },
+      },
+      clipboard: {
+        matchers: [[Node.ELEMENT_NODE, keepFirstLineIndent]],
+      },
+      keyboard: {
+        bindings: {
+          softbreak: {
+            key: 13,
+            shiftKey: true,
+            handler: (range: { index: number; length: number }): boolean => {
+              const quill = ref_editor.current?.getEditor();
+              if (!quill) return true;
+              // Carry the caret's character format onto the break so text typed after it keeps the same style.
+              const { bold, italic, underline, size } = quill.getFormat(range);
+              if (range.length > 0) quill.deleteText(range.index, range.length, "user");
+              quill.insertEmbed(range.index, "softbreak", true, "user");
+              quill.formatText(range.index, 1, { bold, italic, underline, size }, "user");
+              quill.setSelection(range.index + 1, 0, "user");
+              return false;
+            },
+          },
+        },
+      },
+    }),
+    [toolbar_id]
+  );
 
   useEffect(() => {
     const editor: any = ref_editor?.current?.editor;
@@ -114,8 +138,28 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
   }, []);
 
   useEffect(() => {
-    onSetFontSize(font_size);
-  }, [font_size, value]);
+    const quill = ref_editor.current?.getEditor();
+    if (!quill) return;
+
+    const onEditorChange = (): void => {
+      const range = quill.getSelection();
+      if (!range) return;
+
+      // A blank report starts in the legacy VB.NET radiology default: bold, 11.5pt.
+      if (!read_only && quill.getLength() <= 1 && Object.keys(quill.getFormat(range)).length === 0) {
+        quill.format("bold", true, "user");
+        quill.format("size", NEW_REPORT_FONT_SIZE, "user");
+      }
+
+      const size = quill.getFormat(range).size;
+      set_selection_font_size(typeof size === "string" ? size : Array.isArray(size) ? "" : DEFAULT_FONT_SIZE);
+    };
+
+    quill.on("editor-change", onEditorChange);
+    return () => {
+      quill.off("editor-change", onEditorChange);
+    };
+  }, [read_only]);
 
   useEffect(() => {
     // Event handler
@@ -131,6 +175,8 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
+
+  const font_size_options = FONT_SIZES.includes(selection_font_size) || !selection_font_size ? FONT_SIZES : [...FONT_SIZES, selection_font_size];
 
   return (
     <RtfComponentUi id={props.label} className={`editor-container`} ref={ref_container}>
@@ -152,43 +198,45 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
           </span>
 
           <span className="ql-formats">
+            <button className="ql-align" value="" title="Align left" />
+            <button className="ql-align" value="center" title="Center" />
+            <button className="ql-align" value="right" title="Align right" />
+            <button className="ql-align" value="justify" title="Justify" />
+          </span>
+
+          <span className="ql-formats">
+            <button className="ql-indent" value="-1" title="Decrease indent" />
+            <button className="ql-indent" value="+1" title="Increase indent" />
+          </span>
+
+          <span className="ql-formats">
             <TextField
               select
               size="small"
               fullWidth
               variant="standard"
-              value={font_size}
+              value={selection_font_size}
               SelectProps={{
                 MenuProps: {
                   disableScrollLock: true,
                 },
+                SelectDisplayProps: { "aria-label": "Font size" } as React.HTMLAttributes<HTMLDivElement>,
               }}
               InputProps={{
                 readOnly: read_only,
               }}
-              // disabled={read_only}
               style={{
-                width: 60,
+                width: 70,
               }}
               onChange={(e) => {
                 onSetFontSize(e.target.value);
               }}
             >
-              <MenuItem value={"8pt"}>
-                <span>8px</span>
-              </MenuItem>
-              <MenuItem value={"9pt"}>
-                <span>9px</span>
-              </MenuItem>
-              <MenuItem value={"10pt"}>
-                <span>10px</span>
-              </MenuItem>
-              <MenuItem value={"11pt"}>
-                <span>11px</span>
-              </MenuItem>
-              <MenuItem value={"12pt"}>
-                <span>12px</span>
-              </MenuItem>
+              {font_size_options.map((size) => (
+                <MenuItem key={size} value={size}>
+                  <span>{size}</span>
+                </MenuItem>
+              ))}
             </TextField>
           </span>
           <span className="ql-formats">
@@ -222,12 +270,8 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
           onChange={handleChange}
           placeholder="Write here..."
           readOnly={read_only}
-          modules={{
-            toolbar: {
-              container: `#` + toolbar_id,
-            },
-          }} // Apply the toolbar configuration
-          formats={formats}
+          modules={modules} // Apply the toolbar configuration
+          formats={RTF_FORMATS}
         />
       </div>
     </RtfComponentUi>

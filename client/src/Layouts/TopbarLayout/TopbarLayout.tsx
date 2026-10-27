@@ -31,14 +31,11 @@ const TopbarLayout: FC<TopbarLayoutProps> = memo(() => {
   useEffect(() => {
     if (desktop) {
       const is_show = GetLocalStorage(`settings.show_siderbar`) === `true` ? true : false;
-      console.log(`is_show`, is_show);
       dispatch(LayoutActions.ToggleShowSidebar(is_show));
     } else {
       dispatch(LayoutActions.ToggleShowSidebar(false));
     }
   }, [desktop, dispatch]);
-
-  console.log(`show_sidebar`, show_sidebar);
 
   useEffect(() => {
     // SetLocalStorage(`settings.show_siderbar`, show_sidebar + ``);

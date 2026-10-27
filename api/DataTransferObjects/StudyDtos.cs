@@ -46,7 +46,6 @@ namespace Api.DataTransferObjects
             public string readerdoc { get; set; }
             //
             public string user { get; set; }
-            public string font_size { get; set; }
 
         }
 
@@ -58,7 +57,6 @@ namespace Api.DataTransferObjects
             public string templatedeschtml { get; set; }
             public string tempmodality { get; set; }
             public string user { get; set; }
-            public string font_size { get; set; }
         }
 
         public class StudyFilterDto

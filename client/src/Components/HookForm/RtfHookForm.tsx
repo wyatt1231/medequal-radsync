@@ -1,5 +1,5 @@
 import { FormLabel, useTheme } from "@mui/material";
-import { FC, memo, useState } from "react";
+import { FC, memo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import styled from "styled-components";
 import RtfComponent from "../RtfComponent/RtfComponent";
@@ -9,7 +9,6 @@ export type RtfHookFormType = {
   label?: string;
   defaultValue?: string;
   height?: string;
-  font_size?: string;
   //
   read_only?: boolean;
   required?: boolean;
@@ -20,7 +19,6 @@ const RtfHookForm: FC<RtfHookFormType> = memo((props) => {
   const name: string = !!props?.name ? props.name : "";
 
   const formContext = useFormContext();
-  const [font_size, set_font_size] = useState(props.font_size ?? `11pt`);
 
   return (
     <Controller
@@ -41,8 +39,6 @@ const RtfHookForm: FC<RtfHookFormType> = memo((props) => {
               }}
               read_only={props.read_only}
               height={props.height}
-              font_size={font_size}
-              set_font_size={set_font_size}
             ></RtfComponent>
           </RtfHookFormUi>
         );

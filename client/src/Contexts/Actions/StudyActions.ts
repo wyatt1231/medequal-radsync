@@ -98,8 +98,6 @@ const SetStudyPrevs = (study_prevs?: StudyDto[]) => async (dispatch: Dispatch<St
     type: "set_study_prevs",
     study_prevs: study_prevs,
   });
-
-  console.log(`study_prevs`, study_prevs);
 };
 
 const SetStudyNexts = (study_nexts?: StudyDto[]) => async (dispatch: Dispatch<StudyReducerTypes | PageReducerTypes>) => {
