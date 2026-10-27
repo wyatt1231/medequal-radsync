@@ -98,7 +98,8 @@ namespace Api.Utils.Rtf
                 }
             }
 
-            if (ctx.Paragraph != null && ctx.Paragraph.Runs.Count > 0) EndParagraph(ctx);
+            // An empty RichEdit document has no \par at all; keep its one blank line (and that line's format).
+            if ((ctx.Paragraph != null && ctx.Paragraph.Runs.Count > 0) || ctx.Document.Paragraphs.Count == 0) EndParagraph(ctx);
 
             ctx.Document.Normalize();
             return ctx.Document;
@@ -329,6 +330,16 @@ namespace Api.Utils.Rtf
             paragraph.Alignment = ctx.State.Alignment;
             paragraph.LeftIndentTwips = ctx.State.LeftIndentTwips;
             paragraph.FirstIndentTwips = ctx.State.FirstIndentTwips;
+            if (paragraph.Runs.Count == 0)
+            {
+                paragraph.Mark = new RtfRun
+                {
+                    Bold = ctx.State.Bold,
+                    Italic = ctx.State.Italic,
+                    Underline = ctx.State.Underline,
+                    FontSizeHalfPoints = ctx.State.FontSizeHalfPoints
+                };
+            }
             ctx.Document.Paragraphs.Add(paragraph);
             ctx.Paragraph = null;
         }
