@@ -41,8 +41,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
   const { study, study_impression, study_patient } = useSelector((store: RootStore) => store.StudyReducer);
 
-  const [font_size, set_font_size] = useState(`11pt`);
-
   const [is_full_screen_study, set_is_full_screen_study] = useState(false);
   const [is_show_study, set_is_show_study] = useState(true);
   const [is_show_viewer, set_is_show_viewer] = useState(true);
@@ -122,7 +120,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
           BodyComponent: (
             <StudyManageTemplate
               modality={study?.modality}
-              set_font_size={set_font_size}
               set_rtf_impression={set_rtf_impression}
               onSubmitTemplate={onSubmitTemplate}
             ></StudyManageTemplate>
@@ -190,7 +187,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
       set_is_full_screen_study(false);
       document
         .exitFullscreen()
-        .then(() => console.log("Exited fullscreen"))
         .catch((err) => console.error("Error exiting fullscreen:", err));
     } else {
       set_is_full_screen_study(true);
@@ -228,7 +224,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
       // set_is_full_screen_imaging(true);
       iframeRef.current
         .requestFullscreen()
-        .then(() => console.log("Iframe is fullscreen"))
         .catch((err) => console.error("Error entering fullscreen:", err));
     }
   };
@@ -266,7 +261,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
         resulttag: tag,
         radresulthtml: rtf_impression,
         radresultno: radresultno,
-        resultdesc: StringUtil.HtmlToRtf(rtf_impression),
       };
 
       dispatch(
@@ -352,11 +346,7 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
 
   useEffect(() => {
     if (!!radresultno && !!study_impression && !loading_study_impression) {
-      // console.log(`study_impression?.radresulthtml `, study_impression?.radresulthtml);
-
       set_rtf_impression(study_impression?.radresulthtml ?? ``);
-
-      set_font_size(study_impression?.font_size ?? `11pt`);
     }
   }, [dispatch, radresultno, study_impression, loading_study_impression]);
 
@@ -367,9 +357,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
       }
     }
   }, [loading_study, loading_study_impression, isExpanded]);
-
-  console.log(`study_link`, study?.study_link);
-  console.log(`prev_study_link`, study_patient?.prev_study_link);
 
   return loading_study || loading_study_impression ? (
     <Loader></Loader>
@@ -479,8 +466,6 @@ const StudyManagePage: FC<StudyManagePageProps> = memo(() => {
                       onChange={onEditorChange}
                       read_only={!["D", "P"].includes(study_impression?.resulttag)}
                       height={is_full_screen_study ? `82vh` : `calc(100vh - ${height + 220}px)`}
-                      font_size={font_size}
-                      set_font_size={set_font_size}
                       actions={[
                         {
                           label: `View Templates`,

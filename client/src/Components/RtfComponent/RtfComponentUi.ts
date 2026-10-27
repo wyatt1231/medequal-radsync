@@ -12,6 +12,13 @@ const RtfComponentUi = styled(Paper)`
 
   .ql-editor {
     border: none !important;
+    font-size: 11pt;
+  }
+  .ql-editor p {
+    white-space: pre-wrap;
+  }
+  .ql-soft-break br {
+    display: inline;
   }
   .ql-container.ql-snow {
     font-family: "Arial" !important;

@@ -1,7 +1,7 @@
 ﻿
 using Api.Context;
 using Api.DataTransferObjects;
-using Api.Utils;
+using Api.Utils.Rtf;
 
 using Dapper;
 
@@ -153,8 +153,10 @@ namespace radsync_server.Repositories
 
 
             bool is_doctor = UserConfig.IsDoctor(user.user_type);
-            bool isShowAll = !(filter.days_ago >= 0);
             string docCode = await GetDoctorCode(user);
+
+            DynamicParameters parameters = new DynamicParameters(filter);
+            parameters.Add("readerdoc", docCode);
 
 
             string sql_query = $@"SELECT * FROM
@@ -178,7 +180,7 @@ namespace radsync_server.Repositories
                                         LEFT JOIN department d ON d.deptcode=chargedept
                                         LEFT JOIN PSGCAddress pc ON pc.barangaycode=pat.perbarangay
                                         left join vw_requestingdoctor vrd on vrd.doccode  = rd.readerdoc
-                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')   {((!is_doctor || isShowAll) ? "" : " AND rd.readerdoc = '" + docCode + "'")}
+                                        where rd.deptcode='0004'  AND rd.resulttag IN ('D', 'P','F','C')   {(is_doctor ? " AND rd.readerdoc = @readerdoc" : "")}
                                         )
                                     AS studies
                                     {filters}
@@ -186,7 +188,7 @@ namespace radsync_server.Repositories
                                 ";
 
 
-            List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, filter, transaction: transaction)).ToList();
+            List<StudyDto> data = (await con.QueryAsync<StudyDto>(sql_query, parameters, transaction: transaction)).ToList();
 
             // Add study_link to each study
             string accession_link = configuration[Constants.PREV_STUDY_LINK];
@@ -392,8 +394,7 @@ namespace radsync_server.Repositories
                 throw new Exception($"The study with result number {radresultno} does not exist!");
             }
 
-            data.font_size = StringUtil.GetRtfFontSize(data.resultdesc ?? "");
-            data.radresulthtml = StringUtil.RtfToHtml(data.resultdesc ?? "");
+            data.radresulthtml = RtfConverter.RtfToHtml(data.resultdesc);
 
             return data;
         }
@@ -414,6 +415,9 @@ namespace radsync_server.Repositories
             {
                 throw new Exception("Only study tags  'Draft' or 'Final' are accepted!");
             }
+
+            if (study.radresulthtml == null) throw new Exception("The study impression is required!");
+            study.resultdesc = RtfConverter.HtmlToRtf(study.radresulthtml);
 
             bool is_save_as_draft = study.resulttag.ToUpper() == "D";
             bool is_save_as_final = study.resulttag.ToUpper() == "F";
@@ -545,8 +549,7 @@ namespace radsync_server.Repositories
 
             foreach (var item in templates)
             {
-                item.font_size = StringUtil.GetRtfFontSize(item.templatedesc ?? "");
-                item.templatedeschtml = StringUtil.RtfToHtml(item.templatedesc ?? "");
+                item.templatedeschtml = RtfConverter.RtfToHtml(item.templatedesc);
             }
 
             return templates;
@@ -562,7 +565,10 @@ namespace radsync_server.Repositories
             string docCode = await GetDoctorCode(user);
             study.user = docCode;
 
-            int total = await con.QuerySingleOrDefaultAsync<int>("select  coalesce (MAX(CAST(rt.templateno AS UNSIGNED)), 0) from resulttemplate rt", new { }, transaction: transaction);
+            if (study.templatedeschtml == null) throw new Exception("The template content is required!");
+            study.templatedesc = RtfConverter.HtmlToRtf(study.templatedeschtml);
+
+            int total =await con.QuerySingleOrDefaultAsync<int>("select  coalesce (MAX(CAST(rt.templateno AS UNSIGNED)), 0) from resulttemplate rt", new { }, transaction: transaction);
             total = total + 1;
 
             study.templateno = total + "";
@@ -585,6 +591,9 @@ namespace radsync_server.Repositories
 
             string docCode = await GetDoctorCode(user);
             study.user = docCode;
+
+            if (study.templatedeschtml == null) throw new Exception("The template content is required!");
+            study.templatedesc = RtfConverter.HtmlToRtf(study.templatedeschtml);
 
             await con.ExecuteAsync(
                             $@"update resulttemplate set templatekey = @templatekey, templatedesc = @templatedesc, tempmodality = @tempmodality where templateno=@templateno;",
@@ -635,8 +644,7 @@ namespace radsync_server.Repositories
 
             foreach (var item in data)
             {
-                item.font_size = StringUtil.GetRtfFontSize(item.resultdesc ?? "");
-                item.radresulthtml = StringUtil.RtfToHtml(item.resultdesc ?? "");
+                item.radresulthtml = RtfConverter.RtfToHtml(item.resultdesc);
             }
 
 
@@ -673,8 +681,7 @@ namespace radsync_server.Repositories
 
             foreach (var item in data)
             {
-                item.font_size = StringUtil.GetRtfFontSize(item.resultdesc ?? "");
-                item.radresulthtml = StringUtil.RtfToHtml(item.resultdesc ?? "");
+                item.radresulthtml = RtfConverter.RtfToHtml(item.resultdesc);
             }
 
             return data;

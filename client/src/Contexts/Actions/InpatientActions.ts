@@ -99,7 +99,6 @@ const SetMedications = (patno: string, loadingCallback?: (is_loading: boolean) =
 
   try {
     const response = await InpatientApi.GetMedications(patno);
-    console.log(`SetMedications`, response);
     dispatch({
       type: "set_medications",
       medications: response,

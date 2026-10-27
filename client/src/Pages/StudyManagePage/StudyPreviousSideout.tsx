@@ -1,7 +1,7 @@
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Box, Grid, IconButton, Paper, useTheme } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { FC, memo, useEffect, useState } from "react";
+import { FC, memo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import RtfComponent from "../../Components/RtfComponent/RtfComponent";
 import { RootStore } from "../../Contexts/Store";
@@ -11,7 +11,6 @@ import DateUtils from "../../Utils/DateUtils";
 import Preview from "@mui/icons-material/Preview";
 
 interface StudyPreviousSideoutProps {
-  // set_font_size: Dispatch<SetStateAction<string>>;
   // set_rtf_impression: Dispatch<SetStateAction<string>>;
   // onSubmitTemplate: (form_type: FormType, payload: StudyTemplateDto) => Promise<void>;
 }
@@ -20,7 +19,6 @@ const StudyPreviousSideout: FC<StudyPreviousSideoutProps> = memo(() => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const { study_prevs } = useSelector((store: RootStore) => store.StudyReducer);
-  const [font_size, set_font_size] = useState(`11pt`);
   const [selected_prev_study, set_selected_prev_study] = useState<StudyDto>();
 
   const columns: GridColDef<StudyDto>[] = [
@@ -135,12 +133,6 @@ const StudyPreviousSideout: FC<StudyPreviousSideoutProps> = memo(() => {
     },
   ];
 
-  useEffect(() => {
-    set_font_size(selected_prev_study?.font_size ?? `11px`);
-
-    return () => {};
-  }, [selected_prev_study?.font_size]);
-
   return (
     <Grid container spacing={3} height={`100%`}>
       <Grid item xs={4}>
@@ -160,8 +152,6 @@ const StudyPreviousSideout: FC<StudyPreviousSideoutProps> = memo(() => {
           value={selected_prev_study?.radresulthtml ?? ""}
           read_only={true}
           // height={is_full_screen_study ? `82vh` : `700px`}
-          font_size={font_size}
-          set_font_size={set_font_size}
           actions={[]}
           height="calc(100vh - 145px)"
         />
