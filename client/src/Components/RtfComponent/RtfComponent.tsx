@@ -1,6 +1,6 @@
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
-import { Box, Button, IconButton, MenuItem, TextField } from "@mui/material";
+import { Box, Button, IconButton, MenuItem, TextField, Tooltip } from "@mui/material";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactQuill from "react-quill"; // Import ReactQuill component
 import "react-quill/dist/quill.snow.css"; // Import Quill's styles
@@ -8,11 +8,14 @@ import { v4 } from "uuid";
 
 import RtfComponentUi from "./RtfComponentUi";
 import {
+  clampFirstIndent,
   DEFAULT_FONT_SIZE,
   FONT_SIZES,
   INDENT_STEP_PT,
   keepFirstLineIndent,
+  keepParagraphIndents,
   NEW_REPORT_FONT_SIZE,
+  parseMark,
   registerRtfFormats,
   RTF_FORMATS,
 } from "./RtfQuillSetup";
@@ -92,15 +95,22 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
             // getLines() visits nothing for a collapsed caret, so fall back to the caret's own line.
             const lines = range.length > 0 ? quill.getLines(range.index, range.length) : [quill.getLine(range.index)[0]];
             lines.forEach((line) => {
-              const current = parseFloat(line.formats().leftindent ?? "0") || 0;
+              const formats = line.formats();
+              const current = parseFloat(formats.leftindent ?? "0") || 0;
               const next = Math.max(0, current + step);
+              const first = parseFloat(formats.firstindent ?? "0") || 0;
+              const clamped = clampFirstIndent(next, first);
               quill.formatLine(quill.getIndex(line), 1, "leftindent", next > 0 ? `${next}pt` : false, "user");
+              if (clamped !== first) quill.formatLine(quill.getIndex(line), 1, "firstindent", clamped !== 0 ? `${clamped}pt` : false, "user");
             });
           },
         },
       },
       clipboard: {
-        matchers: [[Node.ELEMENT_NODE, keepFirstLineIndent]],
+        matchers: [
+          [Node.ELEMENT_NODE, keepFirstLineIndent],
+          [Node.ELEMENT_NODE, keepParagraphIndents],
+        ],
       },
       keyboard: {
         bindings: {
@@ -145,6 +155,20 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
       const range = quill.getSelection();
       if (!range) return;
 
+      // Like the RichTextBox, typing on a blank line uses that line's paragraph-mark format.
+      // Once the line has text the mark is stale; drop it so Enter doesn't copy it onto the next blank line.
+      const [line] = quill.getLine(range.index);
+      if (!read_only && line && line.length() > 1 && line.formats().mark) {
+        quill.formatLine(quill.getIndex(line), 1, "mark", false, "silent");
+      }
+      const mark = !read_only && range.length === 0 && line && line.length() <= 1 ? parseMark(line.formats().mark) : null;
+      if (mark && quill.getFormat(range).size === undefined) {
+        if (mark.bold) quill.format("bold", true, "user");
+        if (mark.italic) quill.format("italic", true, "user");
+        if (mark.underline) quill.format("underline", true, "user");
+        quill.format("size", mark.size, "user");
+      }
+
       // A blank report starts in the legacy VB.NET radiology default: bold, 11.5pt.
       if (!read_only && quill.getLength() <= 1 && Object.keys(quill.getFormat(range)).length === 0) {
         quill.format("bold", true, "user");
@@ -176,6 +200,9 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
     };
   }, []);
 
+  // Tooltips render inside the editor container so they still show while the editor is in fullscreen.
+  const tooltip_props = { arrow: true, PopperProps: { container: ref_container.current } };
+
   const font_size_options = FONT_SIZES.includes(selection_font_size) || !selection_font_size ? FONT_SIZES : [...FONT_SIZES, selection_font_size];
 
   return (
@@ -192,24 +219,43 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
           gap={`.5em`}
         >
           <span className="ql-formats">
-            <button className="ql-bold" />
-            <button className="ql-italic" />
-            <button className="ql-underline" />
+            <Tooltip title="Bold (Ctrl+B)" {...tooltip_props}>
+              <button className="ql-bold" />
+            </Tooltip>
+            <Tooltip title="Italic (Ctrl+I)" {...tooltip_props}>
+              <button className="ql-italic" />
+            </Tooltip>
+            <Tooltip title="Underline (Ctrl+U)" {...tooltip_props}>
+              <button className="ql-underline" />
+            </Tooltip>
           </span>
 
           <span className="ql-formats">
-            <button className="ql-align" value="" title="Align left" />
-            <button className="ql-align" value="center" title="Center" />
-            <button className="ql-align" value="right" title="Align right" />
-            <button className="ql-align" value="justify" title="Justify" />
+            <Tooltip title="Align left" {...tooltip_props}>
+              <button className="ql-align" value="" />
+            </Tooltip>
+            <Tooltip title="Center" {...tooltip_props}>
+              <button className="ql-align" value="center" />
+            </Tooltip>
+            <Tooltip title="Align right" {...tooltip_props}>
+              <button className="ql-align" value="right" />
+            </Tooltip>
+            <Tooltip title="Justify" {...tooltip_props}>
+              <button className="ql-align" value="justify" />
+            </Tooltip>
           </span>
 
           <span className="ql-formats">
-            <button className="ql-indent" value="-1" title="Decrease indent" />
-            <button className="ql-indent" value="+1" title="Increase indent" />
+            <Tooltip title="Decrease indent" {...tooltip_props}>
+              <button className="ql-indent" value="-1" />
+            </Tooltip>
+            <Tooltip title="Increase indent" {...tooltip_props}>
+              <button className="ql-indent" value="+1" />
+            </Tooltip>
           </span>
 
           <span className="ql-formats">
+            <Tooltip title="Font size" {...tooltip_props}>
             <TextField
               select
               size="small"
@@ -238,12 +284,15 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
                 </MenuItem>
               ))}
             </TextField>
+            </Tooltip>
           </span>
           <span className="ql-formats">
             <Box display={`grid`} alignItems={`center`} alignContent={`center`} gridAutoFlow={`column`}>
-              <IconButton title={is_full_screen ? "Exit Full Screen" : "Enter Full Screen"} onClick={onClickFullScreen} size={"small"}>
-                {is_full_screen ? <FullscreenExitIcon fontSize="small" color="primary" /> : <FullscreenIcon fontSize="small" color="primary" />}
-              </IconButton>
+              <Tooltip title={is_full_screen ? "Exit Full Screen" : "Enter Full Screen"} {...tooltip_props}>
+                <IconButton onClick={onClickFullScreen} size={"small"}>
+                  {is_full_screen ? <FullscreenExitIcon fontSize="small" color="primary" /> : <FullscreenIcon fontSize="small" color="primary" />}
+                </IconButton>
+              </Tooltip>
 
               {props.actions?.map((p, i) => (
                 <Button
@@ -262,7 +311,7 @@ const RtfComponent: React.FC<RtfComponentProps> = ({ value, onChange, read_only,
           </span>
         </Box>
       </div>
-      <div style={{ height: height ?? `auto`, overflowY: `auto` }}>
+      <div className="rtf-scroll" style={{ height: height ?? `auto`, overflowY: `auto` }}>
         <ReactQuill
           theme="snow"
           ref={ref_editor}

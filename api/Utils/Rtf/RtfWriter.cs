@@ -55,6 +55,11 @@ namespace Api.Utils.Rtf
                     WriteText(state, run.Text);
                 }
 
+                // A blank line takes its height from the mark's size; before any text there is no size yet, so state one.
+                if (paragraph.Runs.Count == 0 && (paragraph.Mark != null || state.FontSizeHalfPoints < 0))
+                {
+                    WriteCharacterFormat(state, paragraph.Mark ?? new RtfRun());
+                }
                 WriteParagraphEnd(state);
                 state.PreviousParagraph = paragraph;
             }

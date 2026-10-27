@@ -123,7 +123,7 @@ const StudyManageTemplateForm: FC<StudyManageTemplateFormProps> = memo((props) =
                   name="templatedeschtml"
                   label="Impression"
                   required
-                  height="500px"
+                  height="calc(100vh - 396px)"
                 />
               </Grid>
             </Grid>
