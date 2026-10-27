@@ -29,12 +29,9 @@ const StackSideoutComponent: React.FC<StackSideoutComponentProps> = (props) => {
     if (event.type === "keydown" && ((event as React.KeyboardEvent).key === "Tab" || (event as React.KeyboardEvent).key === "Shift")) {
       return;
     }
-    // console.log(`pop`);
     dispatch(PageActions.PopPageSideout());
     // set_state(open);
   };
-
-  // console.log(`page_sideouts`, page_sideouts.length);
 
   return (
     <>

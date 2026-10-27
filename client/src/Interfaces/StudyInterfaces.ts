@@ -29,7 +29,6 @@ export interface StudyDto {
   dateencoded?: string;
   //
   study_link?: string;
-  font_size?: string;
 }
 
 export interface StudyTemplateDto {
@@ -38,7 +37,6 @@ export interface StudyTemplateDto {
   templatedesc?: string;
   templatedeschtml?: string;
   tempmodality?: string;
-  font_size?: string;
 }
 
 export interface StudyFilterDto {
