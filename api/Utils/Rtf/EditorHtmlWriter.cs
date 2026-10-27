@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Text;
 
@@ -16,7 +17,12 @@ namespace Api.Utils.Rtf
             StringBuilder sb = new StringBuilder();
             foreach (RtfParagraph paragraph in document.Paragraphs)
             {
-                sb.Append("<p style=\"").Append(BlockStyle(paragraph)).Append("\">");
+                sb.Append("<p ");
+                if (paragraph.Runs.Count == 0 && paragraph.Mark != null)
+                {
+                    sb.Append(EditorHtmlReader.MARK_ATTRIBUTE).Append("=\"").Append(EditorHtmlReader.FormatMark(paragraph.Mark)).Append("\" ");
+                }
+                sb.Append("style=\"").Append(BlockStyle(paragraph)).Append("\">");
 
                 if (paragraph.Runs.Count == 0)
                 {
@@ -54,7 +60,10 @@ namespace Api.Utils.Rtf
             if (paragraph.Alignment == RtfAlignment.Right) style.Append(" text-align: right;");
             if (paragraph.Alignment == RtfAlignment.Justify) style.Append(" text-align: justify;");
             if (paragraph.LeftIndentTwips != 0) style.Append(" margin-left: ").Append(FormatPoints(paragraph.LeftIndentTwips / 20.0)).Append(';');
-            if (paragraph.FirstIndentTwips != 0) style.Append(" text-indent: ").Append(FormatPoints(paragraph.FirstIndentTwips / 20.0)).Append(';');
+            // The RichTextBox never draws a first line left of the page margin (e.g. \fi-360 with no \li starts at 0), so
+            // a hanging indent is clamped the same way instead of pushing text out of the editor.
+            int firstIndentTwips = Math.Max(paragraph.FirstIndentTwips, -paragraph.LeftIndentTwips);
+            if (firstIndentTwips != 0) style.Append(" text-indent: ").Append(FormatPoints(firstIndentTwips / 20.0)).Append(';');
             return style.ToString();
         }
 

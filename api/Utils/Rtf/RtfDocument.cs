@@ -36,6 +36,12 @@ namespace Api.Utils.Rtf
         public int FirstIndentTwips { get; set; }
         public List<RtfRun> Runs { get; } = new List<RtfRun>();
 
+        /// <summary>
+        /// Character format of a blank line's paragraph mark. The RichTextBox sizes a blank line by it (e.g. "\fs23\par") and
+        /// types with it, so it is kept for empty paragraphs; null when the paragraph has text or the format is unknown.
+        /// </summary>
+        public RtfRun Mark { get; set; }
+
         public bool HasSameLayout(RtfParagraph other)
         {
             return Alignment == other.Alignment && LeftIndentTwips == other.LeftIndentTwips && FirstIndentTwips == other.FirstIndentTwips;
@@ -61,6 +67,7 @@ namespace Api.Utils.Rtf
             }
             Runs.Clear();
             Runs.AddRange(merged);
+            if (Runs.Count > 0) Mark = null;
         }
     }
 
@@ -78,6 +85,9 @@ namespace Api.Utils.Rtf
         public void Normalize()
         {
             foreach (RtfParagraph paragraph in Paragraphs) paragraph.Normalize();
+
+            // A RichTextBox document always has at least one (possibly empty) paragraph, even when saved without \par.
+            if (Paragraphs.Count == 0) Paragraphs.Add(new RtfParagraph());
         }
     }
 }

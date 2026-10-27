@@ -15,6 +15,8 @@ namespace Api.Utils.Rtf
     {
         public const string SOFT_BREAK_CLASS = "ql-soft-break";
         public const string TRAILING_LINE_ATTRIBUTE = "data-trailing-line";
+        /// <summary>Carries a blank line's paragraph-mark format through the editor, e.g. data-mark="b fs23".</summary>
+        public const string MARK_ATTRIBUTE = "data-mark";
         private const string CURSOR_CLASS = "ql-cursor";
         private const int TWIPS_PER_EDITOR_INDENT_LEVEL = 720;
 
@@ -194,6 +196,7 @@ namespace Api.Utils.Rtf
                 RtfParagraph paragraph = CurrentParagraph(ctx);
                 ctx.ParagraphFromBlockTag = true;
                 ApplyBlockStyle(paragraph, style, classes);
+                if (attributes.TryGetValue(MARK_ATTRIBUTE, out string mark)) paragraph.Mark = ParseMark(mark);
             }
 
             ctx.Frames.Add(frame);
@@ -310,6 +313,36 @@ namespace Api.Utils.Rtf
             {
                 frame.Underline = true;
             }
+        }
+
+        /// <summary>Encodes a paragraph-mark format as the space-separated tokens of <see cref="MARK_ATTRIBUTE"/>.</summary>
+        public static string FormatMark(RtfRun mark)
+        {
+            List<string> tokens = new List<string>();
+            if (mark.Bold) tokens.Add("b");
+            if (mark.Italic) tokens.Add("i");
+            if (mark.Underline) tokens.Add("ul");
+            tokens.Add("fs" + mark.FontSizeHalfPoints.ToString(CultureInfo.InvariantCulture));
+            return string.Join(" ", tokens);
+        }
+
+        /// <summary>Decodes <see cref="MARK_ATTRIBUTE"/>; returns null when it carries no valid font size.</summary>
+        public static RtfRun ParseMark(string value)
+        {
+            RtfRun mark = new RtfRun();
+            bool hasSize = false;
+            foreach (string token in (value ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (token == "b") mark.Bold = true;
+                else if (token == "i") mark.Italic = true;
+                else if (token == "ul") mark.Underline = true;
+                else if (token.StartsWith("fs") && int.TryParse(token.Substring(2), NumberStyles.None, CultureInfo.InvariantCulture, out int size) && size > 0)
+                {
+                    mark.FontSizeHalfPoints = size;
+                    hasSize = true;
+                }
+            }
+            return hasSize ? mark : null;
         }
 
         private static void ApplyBlockStyle(RtfParagraph paragraph, Dictionary<string, string> style, string classes)
